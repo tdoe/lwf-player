@@ -1,7 +1,7 @@
 ## lwf-player
 easy code and easy than [lwf-loader](https://github.com/gree/lwf-loader).
 
-## how to use
+## How to use
 load lwf.js @see[https://github.com/gree/lwf](https://github.com/gree/lwf)
 
 ```
@@ -61,3 +61,7 @@ player.destroy(); // stop LWF and destroy LWF instance.
 
 ##License
 This software is released under the MIT License, see LICENSE.txt.
+
+##Thanks
+https://github.com/gree/lwf  
+https://github.com/gree/lwf-loader
