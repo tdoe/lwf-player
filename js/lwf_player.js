@@ -7,6 +7,9 @@ var LwfPlayer;
         function Util() {
         }
         Util.initUtil = function () {
+            if (typeof global.performance === "undefined") {
+                global.performance = {};
+            }
             global.performance.now = global.performance.now || global.performance.webkitNow || global.performance.mozNow || global.performance.oNow || global.performance.msNow || Date.now;
 
             global.requestAnimationFrame = global.requestAnimationFrame || global.webkitRequestAnimationFrame || global.mozRequestAnimationFrame || global.oRequestAnimationFrame || global.msRequestAnimationFrame;
@@ -52,8 +55,7 @@ var LwfPlayer;
 
     var RendererSelector = (function () {
         function RendererSelector() {
-            this.useWebGL = false;
-            this.renderer = this.autoSelectRenderer_();
+            this.autoSelectRenderer();
         }
         RendererSelector.prototype.getDevicePixelRatio = function () {
             var devicePixelRatio = window.devicePixelRatio;
@@ -83,38 +85,38 @@ var LwfPlayer;
             }
         };
 
-        RendererSelector.prototype.autoSelectRenderer_ = function () {
-            var userAgent = LwfPlayer.Util.ua;
-            if (this.useWebGL) {
-                var canvas = document.createElement("canvas");
-                var contextNames = ["webgl", "experimental-webgl", "moz-webgl", "webkit-3d"];
-                var ctx;
+        RendererSelector.prototype.autoSelectRenderer = function () {
+            var canvas = document.createElement("canvas");
+            var contextNames = ["webgl", "experimental-webgl", "moz-webgl", "webkit-3d"];
 
-                for (var i = 0; i < contextNames.length; i++) {
-                    ctx = canvas.getContext(contextNames[i]);
-                    if (ctx) {
-                        return RendererSelector.webGLRenderer;
-                    }
+            for (var i = 0; i < contextNames.length; i++) {
+                if (canvas.getContext(contextNames[i])) {
+                    this.renderer = RendererSelector.webGLRenderer;
+                    return;
                 }
             }
 
-            if (/iP(ad|hone|od).*OS 4/.test(userAgent)) {
-                return RendererSelector.webkitCSSRenderer;
+            if (/iP(ad|hone|od).*OS 4/.test(LwfPlayer.Util.ua)) {
+                this.renderer = RendererSelector.webkitCSSRenderer;
+                return;
             }
 
-            if (/Android 2\.1/.test(userAgent) || /Android 2\.3\.[5-7]/.test(userAgent)) {
-                return RendererSelector.webkitCSSRenderer;
+            if (/Android 2\.1/.test(LwfPlayer.Util.ua) || /Android 2\.3\.[5-7]/.test(LwfPlayer.Util.ua)) {
+                this.renderer = RendererSelector.webkitCSSRenderer;
+                return;
             }
 
-            if (/Android 4/.test(userAgent)) {
-                if (/Chrome/.test(userAgent)) {
-                    return RendererSelector.canvasRenderer;
+            if (/Android 4/.test(LwfPlayer.Util.ua)) {
+                if (/Chrome/.test(LwfPlayer.Util.ua)) {
+                    this.renderer = RendererSelector.canvasRenderer;
+                    return;
                 } else {
-                    return RendererSelector.webkitCSSRenderer;
+                    this.renderer = RendererSelector.webkitCSSRenderer;
+                    return;
                 }
             }
 
-            return RendererSelector.canvasRenderer;
+            this.renderer = RendererSelector.canvasRenderer;
         };
         RendererSelector.webkitCSSRenderer = "useWebkitCSSRenderer";
         RendererSelector.webGLRenderer = "useWebGLRenderer";
@@ -609,7 +611,7 @@ var LwfPlayer;
         };
 
         Player.prototype.initLwf = function () {
-            if (this.playerSettings.renderer !== void 0 || this.playerSettings.renderer !== null) {
+            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
                 this.rendererSelector.setRenderer(this.playerSettings.renderer);
             }
 

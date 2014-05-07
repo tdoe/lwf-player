@@ -19,10 +19,9 @@ module LwfPlayer {
         public static rendererCanvas:string = "canvas";
 
         private renderer:string;
-        private useWebGL:boolean = false;
 
         constructor() {
-            this.renderer = this.autoSelectRenderer_();
+            this.autoSelectRenderer();
         }
 
         public getDevicePixelRatio() {
@@ -40,16 +39,11 @@ module LwfPlayer {
             return devicePixelRatio;
         }
 
-        /**
-         * return the current renderer name in string, null if undefined
-         * @return {string} current renderer being used
-         */
         public getRenderer() {
             return this.renderer;
         }
 
         public setRenderer(rendererName:string) {
-
             this.renderer = RendererSelector.canvasRenderer;
 
             if (rendererName === RendererSelector.rendererWebkitCSS) {
@@ -59,43 +53,43 @@ module LwfPlayer {
             }
         }
 
-        private autoSelectRenderer_():string {
-            var userAgent:string = LwfPlayer.Util.ua;
-            if (this.useWebGL) {
-                /** detects if current environment is WebGL capable*/
-                var canvas:HTMLCanvasElement = document.createElement("canvas");
-                var contextNames:string[] = ["webgl", "experimental-webgl", "moz-webgl", "webkit-3d"];
-                var ctx:string;
+        private autoSelectRenderer():void {
+            /** detects if current environment is WebGL capable*/
+            var canvas:HTMLCanvasElement = document.createElement("canvas");
+            var contextNames:string[] = ["webgl", "experimental-webgl", "moz-webgl", "webkit-3d"];
 
-                for (var i = 0; i < contextNames.length; i++) {
-                    ctx = canvas.getContext(contextNames[i]);
-                    if (ctx) {
-                        return RendererSelector.webGLRenderer;
-                    }
+            for (var i = 0; i < contextNames.length; i++) {
+                if (canvas.getContext(contextNames[i])) {
+                    this.renderer = RendererSelector.webGLRenderer;
+                    return;
                 }
             }
 
             /** iOS 4 devices should use CSS renderer due to spec issue */
-            if (/iP(ad|hone|od).*OS 4/.test(userAgent)) {
-                return RendererSelector.webkitCSSRenderer;
+            if (/iP(ad|hone|od).*OS 4/.test(Util.ua)) {
+                this.renderer = RendererSelector.webkitCSSRenderer;
+                return;
             }
 
             /** Android 2.1 does not work with Canvas, force to use CSS renderer */
             /** Android 2.3.5 or higher 2.3 versions does not work properly on canvas */
-            if (/Android 2\.1/.test(userAgent) || /Android 2\.3\.[5-7]/.test(userAgent)) {
-                return RendererSelector.webkitCSSRenderer;
+            if (/Android 2\.1/.test(Util.ua) || /Android 2\.3\.[5-7]/.test(Util.ua)) {
+                this.renderer = RendererSelector.webkitCSSRenderer;
+                return;
             }
 
             /** Android 4.x devices are recommended to run with CSS renderer except for Chrome*/
-            if (/Android 4/.test(userAgent)) {
-                if (/Chrome/.test(userAgent)) {
-                    return RendererSelector.canvasRenderer;
+            if (/Android 4/.test(Util.ua)) {
+                if (/Chrome/.test(Util.ua)) {
+                    this.renderer = RendererSelector.canvasRenderer;
+                    return;
                 } else {
-                    return RendererSelector.webkitCSSRenderer;
+                    this.renderer = RendererSelector.webkitCSSRenderer;
+                    return;
                 }
             }
 
-            return RendererSelector.canvasRenderer;
+            this.renderer = RendererSelector.canvasRenderer;
         }
     }
 }

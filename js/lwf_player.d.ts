@@ -22,12 +22,11 @@ declare module LwfPlayer {
         static rendererWebGL: string;
         static rendererCanvas: string;
         private renderer;
-        private useWebGL;
         constructor();
         public getDevicePixelRatio(): number;
         public getRenderer(): string;
         public setRenderer(rendererName: string): void;
-        private autoSelectRenderer_();
+        private autoSelectRenderer();
     }
 }
 declare module LwfPlayer {

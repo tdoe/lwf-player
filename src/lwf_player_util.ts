@@ -35,6 +35,9 @@ module LwfPlayer {
         public static debugInfoElementId:number = 0;
 
         public static initUtil() {
+            if (typeof global.performance === "undefined") {
+                global.performance = {};
+            }
             global.performance.now = global.performance.now ||
                 global.performance.webkitNow ||
                 global.performance.mozNow ||
