@@ -13,14 +13,55 @@ declare module LwfPlayer {
         static initUtil(): void;
     }
 }
+declare module LwfPlayer {
+    class RendererSelector {
+        static webkitCSSRenderer: string;
+        static webGLRenderer: string;
+        static canvasRenderer: string;
+        static rendererWebkitCSS: string;
+        static rendererWebGL: string;
+        static rendererCanvas: string;
+        private renderer;
+        private useWebGL;
+        constructor();
+        public getDevicePixelRatio(): number;
+        public getRenderer(): string;
+        public setRenderer(rendererName: string): void;
+        private autoSelectRenderer_();
+    }
+}
+declare module LwfPlayer {
+    class StageContractor {
+        private player;
+        private targetStage;
+        private screenStage;
+        private eventStage;
+        private stageScale;
+        private devicePixelRatio;
+        private debugInfo;
+        private from;
+        private currentFPS;
+        private execCount;
+        constructor(player: Player);
+        public getStageScale(): number;
+        public getScreenStage(): HTMLElement;
+        public getScreenStageWidth(): number;
+        public getScreenStageHeight(): number;
+        public changeStageSize(width: number, height: number): void;
+        public removeEventListeners(): void;
+        public addEventListeners(): void;
+        public createScreenStage(rendererSelector: RendererSelector): void;
+        public viewDebugInfo(): void;
+    }
+}
 declare var global: any;
 declare module LwfPlayer {
     class Coordinator {
         private x;
         private y;
-        private stageScale;
-        public getInputPoint(event: any, stage: HTMLElement, isPreventDefaultEnabled: Boolean): Coordinator;
-        public setStageScale(stageScale: number): void;
+        private stageContractor;
+        constructor(stageContractor: StageContractor);
+        public getInputPoint(event: any, isPreventDefaultEnabled: Boolean): Coordinator;
         public getX(): number;
         public getY(): number;
     }
@@ -73,46 +114,6 @@ declare module LwfPlayer {
         public renderer: string;
         public debug: boolean;
         public targetStage: HTMLElement;
-    }
-}
-declare module LwfPlayer {
-    class RendererSelector {
-        static webkitCSSRenderer: string;
-        static webGLRenderer: string;
-        static canvasRenderer: string;
-        static rendererWebkitCSS: string;
-        static rendererWebGL: string;
-        static rendererCanvas: string;
-        private renderer;
-        private useWebGL;
-        constructor();
-        public getDevicePixelRatio(): number;
-        public getRenderer(): string;
-        public setRenderer(rendererName: string): void;
-        private autoSelectRenderer_();
-    }
-}
-declare module LwfPlayer {
-    class StageContractor {
-        private player;
-        private targetStage;
-        private screenStage;
-        private eventStage;
-        private stageScale;
-        private devicePixelRatio;
-        private debugInfo;
-        private from;
-        private currentFPS;
-        private execCount;
-        constructor(player: Player);
-        public getScreenStage(): HTMLElement;
-        public getScreenStageWidth(): number;
-        public getScreenStageHeight(): number;
-        public changeStageSize(width: number, height: number): void;
-        public removeEventListeners(): void;
-        public addEventListeners(): void;
-        public createScreenStage(rendererSelector: RendererSelector): void;
-        public viewDebugInfo(): void;
     }
 }
 declare var global: any;

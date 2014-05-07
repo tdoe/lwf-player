@@ -28,7 +28,7 @@ module LwfPlayer {
         private playerSettings:PlayerSettings = null;
         private lwfSettings:LwfSettings = null;
         private stageContractor:StageContractor = null;
-        private coordinator:Coordinator = new Coordinator();
+        private coordinator:Coordinator = null;
         private rendererSelector:RendererSelector = new RendererSelector();
 
         private inputQueue:Function[] = [];
@@ -48,6 +48,7 @@ module LwfPlayer {
 
             this.stageContractor = new StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
+            this.coordinator = new Coordinator(this.stageContractor);
 
             this.validateLwfSetting();
         }
@@ -279,12 +280,20 @@ module LwfPlayer {
             this.lwfSettings.stage = this.stageContractor.getScreenStage();
             this.lwfSettings.imageMap = this.getImageMapper(this.lwfSettings.imageMap);
 
+            if (Util.isAndroid) {
+                this.lwfSettings.use3D = false;
+
+                if (this.lwfSettings.worker) {
+                    this.lwfSettings.worker = Util.useWebWorker;
+                }
+            }
+
             // For backward compatibility lwf-loader.
             this.lwfSettings.privateData["lwfLoader"] = this;
         }
 
         private inputPoint(e:Event):void {
-            var coordinate = this.coordinator.getInputPoint(e, this.stageContractor.getScreenStage(), this.isPreventDefaultEnabled);
+            var coordinate = this.coordinator.getInputPoint(e, this.isPreventDefaultEnabled);
             this.lwf.inputPoint(coordinate.getX(), coordinate.getY());
         }
 

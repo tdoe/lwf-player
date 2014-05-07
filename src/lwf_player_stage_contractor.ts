@@ -34,6 +34,10 @@ module LwfPlayer {
             this.devicePixelRatio = this.player.getRendererSelector().getDevicePixelRatio();
         }
 
+        public getStageScale():number {
+            return this.stageScale;
+        }
+
         public getScreenStage():HTMLElement {
             return this.screenStage;
         }
@@ -68,8 +72,6 @@ module LwfPlayer {
                 stageStyleHeight = Math.round(height);
                 this.stageScale = stageStyleHeight / stageHeight;
             }
-
-            this.player.getCoordinator().setStageScale(this.stageScale);
 
             this.screenStage.style.width = stageStyleWidth + "px";
             this.screenStage.style.height = stageStyleHeight + "px";
@@ -126,7 +128,7 @@ module LwfPlayer {
         }
 
         public viewDebugInfo():void {
-            if (this.debugInfo == null) {
+            if (this.debugInfo === null) {
                 this.debugInfo = document.createElement("div");
                 this.debugInfo.style.position = "absolute";
                 this.debugInfo.style.top = "0px";

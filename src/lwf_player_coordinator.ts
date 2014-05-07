@@ -3,6 +3,7 @@
  */
 
 /// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_stage_contractor.ts"/>
 
 declare var global:any; // window or worker assigned by LWF
 
@@ -11,20 +12,23 @@ module LwfPlayer {
 
         private x:number = 0;
         private y:number = 0;
-        private stageScale:number = 1;
+        private stageContractor:StageContractor;
 
-        public getInputPoint(event:any, stage:HTMLElement, isPreventDefaultEnabled:Boolean) {
+        constructor(stageContractor:StageContractor) {
+            this.stageContractor = stageContractor;
+        }
 
+        public getInputPoint(event:any, isPreventDefaultEnabled:Boolean) {
             if (isPreventDefaultEnabled) {
                 event.preventDefault();
             }
 
-            var stageRect = stage.getBoundingClientRect();
+            var stageRect = this.stageContractor.getScreenStage().getBoundingClientRect();
+            var stageScale = this.stageContractor.getStageScale();
 
             if (Util.isTouchEventEnabled) {
-                var touch = event.touches[0];
-                this.x = touch.pageX;
-                this.y = touch.pageY;
+                this.x = event.touches[0].pageX;
+                this.y = event.touches[0].pageY;
             } else {
                 this.x = event.clientX;
                 this.y = event.clientY;
@@ -38,13 +42,10 @@ module LwfPlayer {
                 this.y -= global.scrollY;
             }
 
-            this.x /= this.stageScale;
-            this.y /= this.stageScale;
-            return this;
-        }
+            this.x /= stageScale;
+            this.y /= stageScale;
 
-        public setStageScale(stageScale:number):void {
-            this.stageScale = stageScale;
+            return this;
         }
 
         public getX():number {
@@ -54,6 +55,5 @@ module LwfPlayer {
         public getY():number {
             return this.y;
         }
-
     }
 }

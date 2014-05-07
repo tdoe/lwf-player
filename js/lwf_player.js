@@ -46,82 +46,6 @@ var LwfPlayer;
     })();
     LwfPlayer.Util = Util;
 })(LwfPlayer || (LwfPlayer = {}));
-
-var LwfPlayer;
-(function (LwfPlayer) {
-    var Coordinator = (function () {
-        function Coordinator() {
-            this.x = 0;
-            this.y = 0;
-            this.stageScale = 1;
-        }
-        Coordinator.prototype.getInputPoint = function (event, stage, isPreventDefaultEnabled) {
-            if (isPreventDefaultEnabled) {
-                event.preventDefault();
-            }
-
-            var stageRect = stage.getBoundingClientRect();
-
-            if (LwfPlayer.Util.isTouchEventEnabled) {
-                var touch = event.touches[0];
-                this.x = touch.pageX;
-                this.y = touch.pageY;
-            } else {
-                this.x = event.clientX;
-                this.y = event.clientY;
-            }
-
-            this.x -= stageRect.left;
-            this.y -= stageRect.top;
-
-            if (LwfPlayer.Util.isSp) {
-                this.x -= global.scrollX;
-                this.y -= global.scrollY;
-            }
-
-            this.x /= this.stageScale;
-            this.y /= this.stageScale;
-            return this;
-        };
-
-        Coordinator.prototype.setStageScale = function (stageScale) {
-            this.stageScale = stageScale;
-        };
-
-        Coordinator.prototype.getX = function () {
-            return this.x;
-        };
-
-        Coordinator.prototype.getY = function () {
-            return this.y;
-        };
-        return Coordinator;
-    })();
-    LwfPlayer.Coordinator = Coordinator;
-})(LwfPlayer || (LwfPlayer = {}));
-var LwfPlayer;
-(function (LwfPlayer) {
-    "use strict";
-
-    var LwfSettings = (function () {
-        function LwfSettings() {
-        }
-        return LwfSettings;
-    })();
-    LwfPlayer.LwfSettings = LwfSettings;
-})(LwfPlayer || (LwfPlayer = {}));
-var LwfPlayer;
-(function (LwfPlayer) {
-    var PlayerSettings = (function () {
-        function PlayerSettings() {
-            this.renderer = "canvas";
-            this.debug = true;
-            this.targetStage = null;
-        }
-        return PlayerSettings;
-    })();
-    LwfPlayer.PlayerSettings = PlayerSettings;
-})(LwfPlayer || (LwfPlayer = {}));
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
@@ -227,6 +151,10 @@ var LwfPlayer;
 
             this.devicePixelRatio = this.player.getRendererSelector().getDevicePixelRatio();
         }
+        StageContractor.prototype.getStageScale = function () {
+            return this.stageScale;
+        };
+
         StageContractor.prototype.getScreenStage = function () {
             return this.screenStage;
         };
@@ -261,8 +189,6 @@ var LwfPlayer;
                 stageStyleHeight = Math.round(height);
                 this.stageScale = stageStyleHeight / stageHeight;
             }
-
-            this.player.getCoordinator().setStageScale(this.stageScale);
 
             this.screenStage.style.width = stageStyleWidth + "px";
             this.screenStage.style.height = stageStyleHeight + "px";
@@ -315,7 +241,7 @@ var LwfPlayer;
         };
 
         StageContractor.prototype.viewDebugInfo = function () {
-            if (this.debugInfo == null) {
+            if (this.debugInfo === null) {
                 this.debugInfo = document.createElement("div");
                 this.debugInfo.style.position = "absolute";
                 this.debugInfo.style.top = "0px";
@@ -346,6 +272,79 @@ var LwfPlayer;
 
 var LwfPlayer;
 (function (LwfPlayer) {
+    var Coordinator = (function () {
+        function Coordinator(stageContractor) {
+            this.x = 0;
+            this.y = 0;
+            this.stageContractor = stageContractor;
+        }
+        Coordinator.prototype.getInputPoint = function (event, isPreventDefaultEnabled) {
+            if (isPreventDefaultEnabled) {
+                event.preventDefault();
+            }
+
+            var stageRect = this.stageContractor.getScreenStage().getBoundingClientRect();
+            var stageScale = this.stageContractor.getStageScale();
+
+            if (LwfPlayer.Util.isTouchEventEnabled) {
+                this.x = event.touches[0].pageX;
+                this.y = event.touches[0].pageY;
+            } else {
+                this.x = event.clientX;
+                this.y = event.clientY;
+            }
+
+            this.x -= stageRect.left;
+            this.y -= stageRect.top;
+
+            if (LwfPlayer.Util.isSp) {
+                this.x -= global.scrollX;
+                this.y -= global.scrollY;
+            }
+
+            this.x /= stageScale;
+            this.y /= stageScale;
+
+            return this;
+        };
+
+        Coordinator.prototype.getX = function () {
+            return this.x;
+        };
+
+        Coordinator.prototype.getY = function () {
+            return this.y;
+        };
+        return Coordinator;
+    })();
+    LwfPlayer.Coordinator = Coordinator;
+})(LwfPlayer || (LwfPlayer = {}));
+var LwfPlayer;
+(function (LwfPlayer) {
+    "use strict";
+
+    var LwfSettings = (function () {
+        function LwfSettings() {
+        }
+        return LwfSettings;
+    })();
+    LwfPlayer.LwfSettings = LwfSettings;
+})(LwfPlayer || (LwfPlayer = {}));
+var LwfPlayer;
+(function (LwfPlayer) {
+    var PlayerSettings = (function () {
+        function PlayerSettings() {
+            this.renderer = "canvas";
+            this.debug = true;
+            this.targetStage = null;
+        }
+        return PlayerSettings;
+    })();
+    LwfPlayer.PlayerSettings = PlayerSettings;
+})(LwfPlayer || (LwfPlayer = {}));
+
+var LwfPlayer;
+(function (LwfPlayer) {
     "use strict";
 
     LwfPlayer.Util.initUtil();
@@ -356,7 +355,7 @@ var LwfPlayer;
             this.playerSettings = null;
             this.lwfSettings = null;
             this.stageContractor = null;
-            this.coordinator = new LwfPlayer.Coordinator();
+            this.coordinator = null;
             this.rendererSelector = new LwfPlayer.RendererSelector();
             this.inputQueue = [];
             this.requests = [];
@@ -372,6 +371,7 @@ var LwfPlayer;
 
             this.stageContractor = new LwfPlayer.StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
+            this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
 
             this.validateLwfSetting();
         }
@@ -497,16 +497,7 @@ var LwfPlayer;
                 if (imageMap && imageMap.hasOwnProperty(pImageId)) {
                     return imageMap[pImageId];
                 }
-
-                if (pImageId.indexOf("lwf_") === 0) {
-                    var prefix = this["lwf"].slice(0, this["lwf"].lastIndexOf("/") + 1);
-                    return "lwf/" + prefix + pImageId;
-                } else if (pImageId.indexOf("param_") === 0) {
-                    console.error("[LWF] error: no imageMap setting for %s, use dummy image.", pImageId);
-                    return "lwf/dummy.png";
-                }
-
-                return pImageId.replace(/_/g, "/");
+                return pImageId;
             };
         };
 
@@ -610,11 +601,19 @@ var LwfPlayer;
             this.lwfSettings.stage = this.stageContractor.getScreenStage();
             this.lwfSettings.imageMap = this.getImageMapper(this.lwfSettings.imageMap);
 
+            if (LwfPlayer.Util.isAndroid) {
+                this.lwfSettings.use3D = false;
+
+                if (this.lwfSettings.worker) {
+                    this.lwfSettings.worker = LwfPlayer.Util.useWebWorker;
+                }
+            }
+
             this.lwfSettings.privateData["lwfLoader"] = this;
         };
 
         Player.prototype.inputPoint = function (e) {
-            var coordinate = this.coordinator.getInputPoint(e, this.stageContractor.getScreenStage(), this.isPreventDefaultEnabled);
+            var coordinate = this.coordinator.getInputPoint(e, this.isPreventDefaultEnabled);
             this.lwf.inputPoint(coordinate.getX(), coordinate.getY());
         };
 
