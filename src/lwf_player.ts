@@ -160,7 +160,7 @@ module LwfPlayer {
         }
 
         private initLwf():void {
-            if (this.playerSettings.renderer !== void 0 || this.playerSettings.renderer !== null) {
+            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
                 this.rendererSelector.setRenderer(this.playerSettings.renderer);
             }
 
