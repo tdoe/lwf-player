@@ -1,14 +1,24 @@
 ## lwf-player
 easy code and easy than [lwf-loader](https://github.com/gree/lwf-loader).
 
+## Demo play
+
+```
+git clone git@github.com:tdoe/lwf-player.git
+cd lwf-player/sample
+python -m SimpleHTTPServer
+```
+
+here in the browser -> [http://localhost:8000/sample1/](http://localhost:8000/sample1/)
+
 ## How to use
-load lwf.js @see[https://github.com/gree/lwf](https://github.com/gree/lwf)
+Load "lwf.js" @see[https://github.com/gree/lwf](https://github.com/gree/lwf)
 
 ```
 <script type="text/javascript" src="js/lwf.js"></script>
 ```
 
-load lwf_player.js file.
+Load "lwf_player.js" file.
 
 ```
 <script type="text/javascript" src="js/lwf_player.min.js"></script>
