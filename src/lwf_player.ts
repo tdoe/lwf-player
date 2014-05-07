@@ -34,7 +34,6 @@ module LwfPlayer {
         private inputQueue:Function[] = [];
         private requests:Object[] = [];
         private from:number = global.performance.now();
-        private isPreventDefaultEnabled:boolean = false;
 
         private pausing:Boolean = false;
         private destroyed:boolean = false;
@@ -293,7 +292,7 @@ module LwfPlayer {
         }
 
         private inputPoint(e:Event):void {
-            var coordinate = this.coordinator.getInputPoint(e, this.isPreventDefaultEnabled);
+            var coordinate = this.coordinator.getInputPoint(e);
             this.lwf.inputPoint(coordinate.getX(), coordinate.getY());
         }
 

@@ -60,8 +60,10 @@ declare module LwfPlayer {
         private x;
         private y;
         private stageContractor;
+        private isPreventDefaultEnabled;
         constructor(stageContractor: StageContractor);
-        public getInputPoint(event: any, isPreventDefaultEnabled: Boolean): Coordinator;
+        public setIsPreventDefaultEnabled(isPreventDefaultEnabled: boolean): void;
+        public getInputPoint(event: any): Coordinator;
         public getX(): number;
         public getY(): number;
     }
@@ -129,7 +131,6 @@ declare module LwfPlayer {
         private inputQueue;
         private requests;
         private from;
-        private isPreventDefaultEnabled;
         private pausing;
         private destroyed;
         constructor(playerSettings: PlayerSettings, lwfSettings: LwfSettings);

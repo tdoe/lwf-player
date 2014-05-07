@@ -276,10 +276,15 @@ var LwfPlayer;
         function Coordinator(stageContractor) {
             this.x = 0;
             this.y = 0;
+            this.isPreventDefaultEnabled = LwfPlayer.Util.isiOS || /Android *(4|3)\..*/.test(LwfPlayer.Util.ua);
             this.stageContractor = stageContractor;
         }
-        Coordinator.prototype.getInputPoint = function (event, isPreventDefaultEnabled) {
-            if (isPreventDefaultEnabled) {
+        Coordinator.prototype.setIsPreventDefaultEnabled = function (isPreventDefaultEnabled) {
+            this.isPreventDefaultEnabled = isPreventDefaultEnabled;
+        };
+
+        Coordinator.prototype.getInputPoint = function (event) {
+            if (this.isPreventDefaultEnabled) {
                 event.preventDefault();
             }
 
@@ -360,7 +365,6 @@ var LwfPlayer;
             this.inputQueue = [];
             this.requests = [];
             this.from = global.performance.now();
-            this.isPreventDefaultEnabled = false;
             this.pausing = false;
             this.destroyed = false;
             this.playerSettings = playerSettings;
@@ -613,7 +617,7 @@ var LwfPlayer;
         };
 
         Player.prototype.inputPoint = function (e) {
-            var coordinate = this.coordinator.getInputPoint(e, this.isPreventDefaultEnabled);
+            var coordinate = this.coordinator.getInputPoint(e);
             this.lwf.inputPoint(coordinate.getX(), coordinate.getY());
         };
 

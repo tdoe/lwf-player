@@ -13,13 +13,18 @@ module LwfPlayer {
         private x:number = 0;
         private y:number = 0;
         private stageContractor:StageContractor;
+        private isPreventDefaultEnabled:boolean = Util.isiOS || /Android *(4|3)\..*/.test(Util.ua);
 
         constructor(stageContractor:StageContractor) {
             this.stageContractor = stageContractor;
         }
 
-        public getInputPoint(event:any, isPreventDefaultEnabled:Boolean) {
-            if (isPreventDefaultEnabled) {
+        public setIsPreventDefaultEnabled(isPreventDefaultEnabled:boolean) {
+            this.isPreventDefaultEnabled = isPreventDefaultEnabled;
+        }
+
+        public getInputPoint(event:any) {
+            if (this.isPreventDefaultEnabled) {
                 event.preventDefault();
             }
 
