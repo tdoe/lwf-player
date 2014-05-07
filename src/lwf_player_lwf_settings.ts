@@ -2,7 +2,11 @@
  * Created by tdoe on 5/5/14.
  */
 
+/// <reference path="lwf_player.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
+
 module LwfPlayer {
+
     "use strict";
 
     export class LwfSettings {
@@ -62,5 +66,102 @@ module LwfPlayer {
         public useVertexColor:boolean;
 
         public worker:boolean;
+
+        public prepareLwfSettings(player:Player, lwfSettings:LwfSettings) {
+            for (var i in lwfSettings) {
+                if (lwfSettings.hasOwnProperty(i)) {
+                    this[i] = lwfSettings[i];
+                }
+            }
+
+            if (this.privateData === void 0) {
+                this.privateData = {};
+            }
+
+            if (this.useBackgroundColor === void 0) {
+                this.useBackgroundColor = true;
+            }
+
+            if (this.pos === void 0) {
+                this.pos = {
+                    "position": "absolute",
+                    "top": 0,
+                    "left": 0
+                };
+            }
+
+            this.imageMap = this.getImageMapper(this.imageMap);
+
+            if (Util.isAndroid) {
+                /** force to disable use3D on Android devices */
+                this.use3D = false;
+
+                if (this.worker) {
+                    this.worker = Util.useWebWorker;
+                }
+
+                /** handle buggy css behaviour in certain devices */
+                if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) &&
+                    player.getRendererSelector().getRenderer() === RendererSelector.webkitCSSRenderer) {
+                    this.quirkyClearRect = true;
+                }
+            }
+
+            // For backward compatibility lwf-loader.
+            this.privateData["lwfLoader"] = player;
+        }
+
+        public prepareChildLwfSettings(lwf:LWF.LWF, lwfName:string, privateData:Object) {
+            for (var i in privateData) {
+                if (privateData.hasOwnProperty(i)) {
+                    this.privateData[i] = privateData[i];
+                }
+            }
+
+            if (privateData.hasOwnProperty("imageMap")) {
+                this.imageMap = this.getImageMapper(privateData["imageMap"]);
+            }
+
+            this.fitForHeight = false;
+            this.fitForWidth = false;
+            this.parentLWF = lwf;
+            this.active = false;
+            this.lwf = this.getLwfPath(lwfName);
+        }
+
+        private getImageMapper(imageMap:any):Function {
+            if (typeof imageMap == "function") {
+                return imageMap;
+            }
+
+            return function (pImageId:string) {
+                if (imageMap && imageMap.hasOwnProperty(pImageId)) {
+                    return imageMap[pImageId];
+                }
+                return pImageId;
+            };
+        }
+
+        private getLwfPath(lwfName):string {
+            if (this.lwfMap !== void 0) {
+                if (typeof this.lwfMap === "function") {
+                    return this.lwfMap(lwfName);
+                }
+
+                var path = this.lwfMap[lwfName];
+                if (!/\.lwf$/.test(path)) {
+                    path += ".lwf";
+                }
+
+                return path;
+            }
+
+            var _lwfName = lwfName;
+            if (lwfName.indexOf("/") >= 0) {
+                _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
+            }
+
+            return lwfName + "/_/" + _lwfName + ".lwf";
+        }
     }
 }

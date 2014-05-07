@@ -150,14 +150,6 @@ var LwfPlayer;
                 this.targetStage.style.position = "relative";
             }
 
-            if (this.player.getLwfSettings().pos === void 0 || this.player.getLwfSettings().pos === null) {
-                this.player.getLwfSettings().pos = {
-                    "position": "absolute",
-                    "top": 0,
-                    "left": 0
-                };
-            }
-
             this.devicePixelRatio = this.player.getRendererSelector().getDevicePixelRatio();
         }
         StageContractor.prototype.getStageScale = function () {
@@ -368,6 +360,98 @@ var LwfPlayer;
     var LwfSettings = (function () {
         function LwfSettings() {
         }
+        LwfSettings.prototype.prepareLwfSettings = function (player, lwfSettings) {
+            for (var i in lwfSettings) {
+                if (lwfSettings.hasOwnProperty(i)) {
+                    this[i] = lwfSettings[i];
+                }
+            }
+
+            if (this.privateData === void 0) {
+                this.privateData = {};
+            }
+
+            if (this.useBackgroundColor === void 0) {
+                this.useBackgroundColor = true;
+            }
+
+            if (this.pos === void 0) {
+                this.pos = {
+                    "position": "absolute",
+                    "top": 0,
+                    "left": 0
+                };
+            }
+
+            this.imageMap = this.getImageMapper(this.imageMap);
+
+            if (LwfPlayer.Util.isAndroid) {
+                this.use3D = false;
+
+                if (this.worker) {
+                    this.worker = LwfPlayer.Util.useWebWorker;
+                }
+
+                if (/ (SC-0|Galaxy Nexus|SH-0)/.test(LwfPlayer.Util.ua) && player.getRendererSelector().getRenderer() === LwfPlayer.RendererSelector.webkitCSSRenderer) {
+                    this.quirkyClearRect = true;
+                }
+            }
+
+            this.privateData["lwfLoader"] = player;
+        };
+
+        LwfSettings.prototype.prepareChildLwfSettings = function (lwf, lwfName, privateData) {
+            for (var i in privateData) {
+                if (privateData.hasOwnProperty(i)) {
+                    this.privateData[i] = privateData[i];
+                }
+            }
+
+            if (privateData.hasOwnProperty("imageMap")) {
+                this.imageMap = this.getImageMapper(privateData["imageMap"]);
+            }
+
+            this.fitForHeight = false;
+            this.fitForWidth = false;
+            this.parentLWF = lwf;
+            this.active = false;
+            this.lwf = this.getLwfPath(lwfName);
+        };
+
+        LwfSettings.prototype.getImageMapper = function (imageMap) {
+            if (typeof imageMap == "function") {
+                return imageMap;
+            }
+
+            return function (pImageId) {
+                if (imageMap && imageMap.hasOwnProperty(pImageId)) {
+                    return imageMap[pImageId];
+                }
+                return pImageId;
+            };
+        };
+
+        LwfSettings.prototype.getLwfPath = function (lwfName) {
+            if (this.lwfMap !== void 0) {
+                if (typeof this.lwfMap === "function") {
+                    return this.lwfMap(lwfName);
+                }
+
+                var path = this.lwfMap[lwfName];
+                if (!/\.lwf$/.test(path)) {
+                    path += ".lwf";
+                }
+
+                return path;
+            }
+
+            var _lwfName = lwfName;
+            if (lwfName.indexOf("/") >= 0) {
+                _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
+            }
+
+            return lwfName + "/_/" + _lwfName + ".lwf";
+        };
         return LwfSettings;
     })();
     LwfPlayer.LwfSettings = LwfSettings;
@@ -396,7 +480,7 @@ var LwfPlayer;
             this.lwf = null;
             this.cache = null;
             this.playerSettings = null;
-            this.lwfSettings = null;
+            this.lwfSettings = new LwfPlayer.LwfSettings();
             this.stageContractor = null;
             this.coordinator = null;
             this.rendererSelector = new LwfPlayer.RendererSelector();
@@ -406,16 +490,14 @@ var LwfPlayer;
             this.pausing = false;
             this.destroyed = false;
             this.playerSettings = playerSettings;
-            this.lwfSettings = lwfSettings;
-
-            this.restraint();
-            this.initLwf();
-
+            this.lwfSettings.prepareLwfSettings(this, lwfSettings);
             this.stageContractor = new LwfPlayer.StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
             this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
+            this.lwfSettings.stage = this.stageContractor.getScreenStage();
 
-            this.validateLwfSetting();
+            this.restraint();
+            this.initLwf();
         }
         Player.prototype.play = function () {
             var _this = this;
@@ -460,6 +542,10 @@ var LwfPlayer;
             return this.rendererSelector;
         };
 
+        Player.prototype.getStageContractor = function () {
+            return this.stageContractor;
+        };
+
         Player.prototype.requestLWF = function (onload) {
             this.lwfSettings.onload = onload;
             this.requests.push(this.lwfSettings);
@@ -471,30 +557,16 @@ var LwfPlayer;
         };
 
         Player.prototype.loadLWF = function (lwf, lwfName, imageMap, privateData, callback) {
-            for (var i in privateData) {
-                if (privateData.hasOwnProperty(i)) {
-                    this.lwfSettings.privateData[i] = privateData[i];
-                }
-            }
-
-            if (privateData.hasOwnProperty("imageMap")) {
-                this.lwfSettings.imageMap = this.getImageMapper(privateData["imageMap"]);
-            }
+            this.lwfSettings.prepareChildLwfSettings(lwf, lwfName, privateData);
 
             var _this = this;
             this.lwfSettings.onload = function (childLwf) {
                 if (!childLwf) {
                     _this.handleLoadError();
-                    return callback(this["error"], childLwf);
+                    return callback(this.lwfSettings["error"], childLwf);
                 }
                 return callback(null, childLwf);
             };
-
-            this.lwfSettings.imagePrefix = void 0;
-            this.lwfSettings.parentLWF = lwf;
-            this.lwfSettings.active = false;
-            this.lwfSettings.fitForHeight = this.lwfSettings.fitForWidth = false;
-            this.lwfSettings.lwf = this.getLwfPath(lwfName);
 
             this.cache.loadLWF(this.lwfSettings);
         };
@@ -513,41 +585,6 @@ var LwfPlayer;
             console.error("[LWF] load Exception: %o", exception);
         };
 
-        Player.prototype.getLwfPath = function (lwfName) {
-            if (this.lwfSettings.lwfMap !== void 0) {
-                if (typeof this.lwfSettings.lwfMap === "function") {
-                    return this.lwfSettings.lwfMap(lwfName);
-                }
-
-                var path = this.lwfSettings.lwfMap[lwfName];
-                if (!/\.lwf$/.test(path)) {
-                    path += ".lwf";
-                }
-
-                return path;
-            }
-
-            var _lwfName = lwfName;
-            if (lwfName.indexOf("/") >= 0) {
-                _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
-            }
-
-            return lwfName + "/_/" + _lwfName + ".lwf";
-        };
-
-        Player.prototype.getImageMapper = function (imageMap) {
-            if (typeof imageMap == "function") {
-                return imageMap;
-            }
-
-            return function (pImageId) {
-                if (imageMap && imageMap.hasOwnProperty(pImageId)) {
-                    return imageMap[pImageId];
-                }
-                return pImageId;
-            };
-        };
-
         Player.prototype.exec = function () {
             var _this = this;
             try  {
@@ -555,7 +592,7 @@ var LwfPlayer;
                     this.destroyLwf();
                     return;
                 }
-                if (this.lwf != null && !this.pausing) {
+                if (this.lwf !== null && !this.pausing) {
                     for (var i = 0; i < this.inputQueue.length; i++) {
                         this.inputQueue[i]();
                     }
@@ -634,37 +671,6 @@ var LwfPlayer;
                 console.log("destroy LWF.");
             }
             console.log("LWF is destroyed.");
-        };
-
-        Player.prototype.validateLwfSetting = function () {
-            if (this.lwfSettings.privateData === void 0) {
-                this.lwfSettings.privateData = {};
-            }
-
-            if (this.lwfSettings.useBackgroundColor === void 0) {
-                this.lwfSettings.useBackgroundColor = true;
-            }
-
-            this.lwfSettings.stage = this.stageContractor.getScreenStage();
-            this.lwfSettings.imageMap = this.getImageMapper(this.lwfSettings.imageMap);
-
-            if (LwfPlayer.Util.isAndroid) {
-                this.lwfSettings.use3D = false;
-
-                if (this.lwfSettings.worker) {
-                    this.lwfSettings.worker = LwfPlayer.Util.useWebWorker;
-                }
-            }
-
-            if (LwfPlayer.Util.isAndroid) {
-                this.lwfSettings.use3D = false;
-
-                if (/ (SC-0|Galaxy Nexus|SH-0)/.test(LwfPlayer.Util.ua) && this.rendererSelector.getRenderer() === LwfPlayer.RendererSelector.webkitCSSRenderer) {
-                    this.lwfSettings.quirkyClearRect = true;
-                }
-            }
-
-            this.lwfSettings.privateData["lwfLoader"] = this;
         };
 
         Player.prototype.inputPoint = function (e) {

@@ -109,6 +109,10 @@ declare module LwfPlayer {
         public useBackgroundColor: boolean;
         public useVertexColor: boolean;
         public worker: boolean;
+        public prepareLwfSettings(player: Player, lwfSettings: LwfSettings): void;
+        public prepareChildLwfSettings(lwf: LWF.LWF, lwfName: string, privateData: Object): void;
+        private getImageMapper(imageMap);
+        private getLwfPath(lwfName);
     }
 }
 declare module LwfPlayer {
@@ -142,18 +146,16 @@ declare module LwfPlayer {
         public getPlayerSettings(): PlayerSettings;
         public getLwfSettings(): LwfSettings;
         public getRendererSelector(): RendererSelector;
+        public getStageContractor(): StageContractor;
         private requestLWF(onload);
         private loadLWFs(onLoadAll);
         private loadLWF(lwf, lwfName, imageMap, privateData, callback);
         private handleLoadError();
         private handleException(exception);
-        private getLwfPath(lwfName);
-        private getImageMapper(imageMap);
         private exec();
         private initLwf();
         private renderLwf();
         private destroyLwf();
-        private validateLwfSetting();
         private inputPoint(e);
         private inputPress(e);
         private inputRelease(e);

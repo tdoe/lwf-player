@@ -26,7 +26,7 @@ module LwfPlayer {
         private cache:LWF.ResourceCache = null;
 
         private playerSettings:PlayerSettings = null;
-        private lwfSettings:LwfSettings = null;
+        private lwfSettings:LwfSettings = new LwfSettings();
         private stageContractor:StageContractor = null;
         private coordinator:Coordinator = null;
         private rendererSelector:RendererSelector = new RendererSelector();
@@ -40,16 +40,14 @@ module LwfPlayer {
 
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
             this.playerSettings = playerSettings;
-            this.lwfSettings = lwfSettings;
-
-            this.restraint();
-            this.initLwf();
-
+            this.lwfSettings.prepareLwfSettings(this, lwfSettings);
             this.stageContractor = new StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
             this.coordinator = new Coordinator(this.stageContractor);
+            this.lwfSettings.stage = this.stageContractor.getScreenStage();
 
-            this.validateLwfSetting();
+            this.restraint();
+            this.initLwf();
         }
 
         public play():void {
@@ -95,6 +93,10 @@ module LwfPlayer {
             return this.rendererSelector;
         }
 
+        public getStageContractor() {
+            return this.stageContractor;
+        }
+
         private requestLWF(onload:Function):void {
             this.lwfSettings.onload = onload;
             this.requests.push(this.lwfSettings);
@@ -106,30 +108,16 @@ module LwfPlayer {
         }
 
         private loadLWF(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void {
-            for (var i in privateData) {
-                if (privateData.hasOwnProperty(i)) {
-                    this.lwfSettings.privateData[i] = privateData[i];
-                }
-            }
-
-            if (privateData.hasOwnProperty("imageMap")) {
-                this.lwfSettings.imageMap = this.getImageMapper(privateData["imageMap"]);
-            }
+            this.lwfSettings.prepareChildLwfSettings(lwf, lwfName, privateData);
 
             var _this = this;
             this.lwfSettings.onload = function (childLwf:LWF.LWF) {
                 if (!childLwf) {
                     _this.handleLoadError();
-                    return callback(this["error"], childLwf);
+                    return callback(this.lwfSettings["error"], childLwf);
                 }
                 return callback(null, childLwf);
             };
-
-            this.lwfSettings.imagePrefix = void 0;
-            this.lwfSettings.parentLWF = lwf;
-            this.lwfSettings.active = false;
-            this.lwfSettings.fitForHeight = this.lwfSettings.fitForWidth = false;
-            this.lwfSettings.lwf = this.getLwfPath(lwfName);
 
             this.cache.loadLWF(this.lwfSettings);
         }
@@ -148,41 +136,6 @@ module LwfPlayer {
             console.error("[LWF] load Exception: %o", exception);
         }
 
-        private getLwfPath(lwfName):string {
-            if (this.lwfSettings.lwfMap !== void 0) {
-                if (typeof this.lwfSettings.lwfMap === "function") {
-                    return this.lwfSettings.lwfMap(lwfName);
-                }
-
-                var path = this.lwfSettings.lwfMap[lwfName];
-                if (!/\.lwf$/.test(path)) {
-                    path += ".lwf";
-                }
-
-                return path;
-            }
-
-            var _lwfName = lwfName;
-            if (lwfName.indexOf("/") >= 0) {
-                _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
-            }
-
-            return lwfName + "/_/" + _lwfName + ".lwf";
-        }
-
-        private getImageMapper(imageMap:any):Function {
-            if (typeof imageMap == "function") {
-                return imageMap;
-            }
-
-            return function (pImageId:string) {
-                if (imageMap && imageMap.hasOwnProperty(pImageId)) {
-                    return imageMap[pImageId];
-                }
-                return pImageId;
-            };
-        }
-
         private exec():void {
             var _this = this;
             try {
@@ -190,7 +143,7 @@ module LwfPlayer {
                     this.destroyLwf();
                     return;
                 }
-                if (this.lwf != null && !this.pausing) {
+                if (this.lwf !== null && !this.pausing) {
                     for (var i = 0; i < this.inputQueue.length; i++) {
                         this.inputQueue[i]();
                     }
@@ -270,39 +223,6 @@ module LwfPlayer {
                 console.log("destroy LWF.");
             }
             console.log("LWF is destroyed.");
-        }
-
-        private validateLwfSetting():void {
-            if (this.lwfSettings.privateData === void 0) {
-                this.lwfSettings.privateData = {};
-            }
-
-            if (this.lwfSettings.useBackgroundColor === void 0) {
-                this.lwfSettings.useBackgroundColor = true;
-            }
-
-            this.lwfSettings.stage = this.stageContractor.getScreenStage();
-            this.lwfSettings.imageMap = this.getImageMapper(this.lwfSettings.imageMap);
-
-            if (Util.isAndroid) {
-                this.lwfSettings.use3D = false;
-
-                if (this.lwfSettings.worker) {
-                    this.lwfSettings.worker = Util.useWebWorker;
-                }
-            }
-
-            /** force to disable use3D on Android devices */
-            if (Util.isAndroid) {
-                this.lwfSettings.use3D = false;
-                /** handle buggy css behaviour in certain devices */
-                if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) && this.rendererSelector.getRenderer() === RendererSelector.webkitCSSRenderer) {
-                    this.lwfSettings.quirkyClearRect = true;
-                }
-            }
-
-            // For backward compatibility lwf-loader.
-            this.lwfSettings.privateData["lwfLoader"] = this;
         }
 
         private inputPoint(e:Event):void {

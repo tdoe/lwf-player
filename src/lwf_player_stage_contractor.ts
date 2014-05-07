@@ -33,14 +33,6 @@ module LwfPlayer {
                 this.targetStage.style.position = "relative";
             }
 
-            if (this.player.getLwfSettings().pos === void 0 || this.player.getLwfSettings().pos === null) {
-                this.player.getLwfSettings().pos = {
-                    "position": "absolute",
-                    "top": 0,
-                    "left": 0
-                };
-            }
-
             this.devicePixelRatio = this.player.getRendererSelector().getDevicePixelRatio();
         }
 
