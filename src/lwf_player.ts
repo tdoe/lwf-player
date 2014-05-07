@@ -41,6 +41,9 @@ module LwfPlayer {
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
             this.playerSettings = playerSettings;
             this.lwfSettings.prepareLwfSettings(this, lwfSettings);
+            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
+                this.rendererSelector.setRenderer(this.playerSettings.renderer);
+            }
             this.stageContractor = new StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
             this.coordinator = new Coordinator(this.stageContractor);
@@ -160,9 +163,7 @@ module LwfPlayer {
         }
 
         private initLwf():void {
-            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
-                this.rendererSelector.setRenderer(this.playerSettings.renderer);
-            }
+
 
             try {
                 switch (this.rendererSelector.getRenderer()) {
@@ -205,6 +206,11 @@ module LwfPlayer {
                 this.lwf.fitForHeight(stageWidth, stageHeight);
             }
 
+            if (this.getRendererSelector().getRenderer() === RendererSelector.webkitCSSRenderer) {
+                this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
+            }
+
+            this.lwf.property.moveTo(0, 0);
             this.lwf.exec(tick / 1000);
             this.lwf.render();
 

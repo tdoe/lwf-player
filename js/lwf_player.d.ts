@@ -23,7 +23,6 @@ declare module LwfPlayer {
         static rendererCanvas: string;
         private renderer;
         constructor();
-        public getDevicePixelRatio(): number;
         public getRenderer(): string;
         public setRenderer(rendererName: string): void;
         private autoSelectRenderer();
@@ -42,6 +41,7 @@ declare module LwfPlayer {
         private currentFPS;
         private execCount;
         constructor(player: Player);
+        public getDevicePixelRatio(): number;
         public getStageScale(): number;
         public getScreenStage(): HTMLElement;
         public getScreenStageWidth(): number;

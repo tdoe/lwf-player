@@ -57,20 +57,6 @@ var LwfPlayer;
         function RendererSelector() {
             this.autoSelectRenderer();
         }
-        RendererSelector.prototype.getDevicePixelRatio = function () {
-            var devicePixelRatio = window.devicePixelRatio;
-
-            if (this.renderer === RendererSelector.webkitCSSRenderer) {
-                devicePixelRatio = 1;
-            }
-
-            if (this.renderer === RendererSelector.webGLRenderer && / F-/.test(LwfPlayer.Util.ua)) {
-                devicePixelRatio = 2;
-            }
-
-            return devicePixelRatio;
-        };
-
         RendererSelector.prototype.getRenderer = function () {
             return this.renderer;
         };
@@ -137,6 +123,7 @@ var LwfPlayer;
             this.targetStage = null;
             this.screenStage = null;
             this.stageScale = 1;
+            this.devicePixelRatio = global.devicePixelRatio;
             this.debugInfo = null;
             this.from = global.performance.now();
             this.currentFPS = 0;
@@ -152,8 +139,18 @@ var LwfPlayer;
                 this.targetStage.style.position = "relative";
             }
 
-            this.devicePixelRatio = this.player.getRendererSelector().getDevicePixelRatio();
+            if (this.player.getRendererSelector().getRenderer() === LwfPlayer.RendererSelector.webkitCSSRenderer) {
+                this.devicePixelRatio = 1;
+            }
+
+            if (this.player.getRendererSelector().getRenderer() === LwfPlayer.RendererSelector.webGLRenderer && / F-/.test(LwfPlayer.Util.ua)) {
+                this.devicePixelRatio = 2;
+            }
         }
+        StageContractor.prototype.getDevicePixelRatio = function () {
+            return this.devicePixelRatio;
+        };
+
         StageContractor.prototype.getStageScale = function () {
             return this.stageScale;
         };
@@ -171,10 +168,14 @@ var LwfPlayer;
         };
 
         StageContractor.prototype.changeStageSize = function (width, height) {
-            var stageStyleWidth = 0;
-            var stageStyleHeight = 0;
-            var stageWidth = ~~width * this.devicePixelRatio;
-            var stageHeight = ~~height * this.devicePixelRatio;
+            var stageWidth = 0;
+            var stageHeight = 0;
+
+            var screenWidth = global.innerWidth;
+            var screenHeight = global.innerHeight;
+
+            var stageRatio = width / height;
+            var screenRatio = screenWidth / screenHeight;
 
             if (LwfPlayer.Util.isAndroid) {
                 if (global.innerWidth > global.screen.width) {
@@ -193,22 +194,30 @@ var LwfPlayer;
             }
 
             if (this.player.getLwfSettings().fitForWidth) {
-                stageStyleWidth = Math.round(width);
-                stageStyleHeight = Math.round(width * height / width);
-                this.stageScale = stageStyleWidth / stageWidth;
+                stageWidth = Math.round(width);
+                stageHeight = Math.round(width * height / width);
+                this.stageScale = stageWidth / stageWidth;
+            } else if (this.player.getLwfSettings().fitForHeight) {
+                stageWidth = Math.round(height * width / height);
+                stageHeight = Math.round(height);
+                this.stageScale = stageHeight / stageHeight;
             } else {
-                stageStyleWidth = Math.round(height * width / height);
-                stageStyleHeight = Math.round(height);
-                this.stageScale = stageStyleHeight / stageHeight;
+                if (screenRatio > stageRatio) {
+                    stageWidth = width * (screenHeight / height);
+                    stageHeight = screenHeight;
+                } else {
+                    stageWidth = screenWidth;
+                    stageHeight = height * (screenWidth / width);
+                }
             }
 
-            this.screenStage.style.width = this.eventReceiveStage.style.width = stageStyleWidth + "px";
-            this.screenStage.style.height = this.eventReceiveStage.style.height = stageStyleHeight + "px";
+            this.screenStage.style.width = this.eventReceiveStage.style.width = stageWidth + "px";
+            this.screenStage.style.height = this.eventReceiveStage.style.height = stageHeight + "px";
 
-            this.screenStage.setAttribute("width", stageWidth + "");
-            this.screenStage.setAttribute("height", stageHeight + "");
-            this.eventReceiveStage.setAttribute("width", stageWidth + "");
-            this.eventReceiveStage.setAttribute("height", stageHeight + "");
+            this.screenStage.setAttribute("width", Math.floor(stageWidth * this.devicePixelRatio) + "");
+            this.screenStage.setAttribute("height", Math.floor(stageHeight * this.devicePixelRatio) + "");
+            this.eventReceiveStage.setAttribute("width", Math.floor(stageWidth * this.devicePixelRatio) + "");
+            this.eventReceiveStage.setAttribute("height", Math.floor(stageHeight * this.devicePixelRatio) + "");
         };
 
         StageContractor.prototype.removeEventListeners = function () {
@@ -493,6 +502,9 @@ var LwfPlayer;
             this.destroyed = false;
             this.playerSettings = playerSettings;
             this.lwfSettings.prepareLwfSettings(this, lwfSettings);
+            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
+                this.rendererSelector.setRenderer(this.playerSettings.renderer);
+            }
             this.stageContractor = new LwfPlayer.StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
             this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
@@ -611,10 +623,6 @@ var LwfPlayer;
         };
 
         Player.prototype.initLwf = function () {
-            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
-                this.rendererSelector.setRenderer(this.playerSettings.renderer);
-            }
-
             try  {
                 switch (this.rendererSelector.getRenderer()) {
                     case LwfPlayer.RendererSelector.canvasRenderer:
@@ -655,6 +663,11 @@ var LwfPlayer;
                 this.lwf.fitForHeight(stageWidth, stageHeight);
             }
 
+            if (this.getRendererSelector().getRenderer() === LwfPlayer.RendererSelector.webkitCSSRenderer) {
+                this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
+            }
+
+            this.lwf.property.moveTo(0, 0);
             this.lwf.exec(tick / 1000);
             this.lwf.render();
 

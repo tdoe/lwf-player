@@ -24,21 +24,6 @@ module LwfPlayer {
             this.autoSelectRenderer();
         }
 
-        public getDevicePixelRatio() {
-            var devicePixelRatio = window.devicePixelRatio;
-
-            if (this.renderer === RendererSelector.webkitCSSRenderer) {
-                devicePixelRatio = 1;
-            }
-
-            /* set DPR to 2 when running  WebGLRenderer on ARROWS F-series device */
-            if (this.renderer === RendererSelector.webGLRenderer && / F-/.test(Util.ua)) {
-                devicePixelRatio = 2;
-            }
-
-            return devicePixelRatio;
-        }
-
         public getRenderer() {
             return this.renderer;
         }
