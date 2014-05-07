@@ -31,7 +31,7 @@ module.exports = function (grunt) {
                 },
                 dev: {
                     src: ['src/**/*.ts'],
-                    dest: 'js/lwf_player.js',
+                    dest: 'sample/js/lwf_player.js',
                     options: {
                         target: 'es5'
                     }

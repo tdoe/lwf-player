@@ -357,6 +357,7 @@ var LwfPlayer;
     var Player = (function () {
         function Player(playerSettings, lwfSettings) {
             this.lwf = null;
+            this.cache = null;
             this.playerSettings = null;
             this.lwfSettings = null;
             this.stageContractor = null;
@@ -476,11 +477,16 @@ var LwfPlayer;
         };
 
         Player.prototype.getLwfPath = function (lwfName) {
-            if (this.lwfSettings.lwfMap !== void 0 && typeof this.lwfSettings.lwfMap === "object") {
+            if (this.lwfSettings.lwfMap !== void 0) {
+                if (typeof this.lwfSettings.lwfMap === "function") {
+                    return this.lwfSettings.lwfMap(lwfName);
+                }
+
                 var path = this.lwfSettings.lwfMap[lwfName];
                 if (!/\.lwf$/.test(path)) {
                     path += ".lwf";
                 }
+
                 return path;
             }
 
