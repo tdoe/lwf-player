@@ -23,7 +23,7 @@ module LwfPlayer {
     export class Player {
 
         private lwf:LWF.LWF = null;
-        private cache:LWF.ResourceCache;
+        private cache:LWF.ResourceCache = null;
 
         private playerSettings:PlayerSettings = null;
         private lwfSettings:LwfSettings = null;
@@ -149,11 +149,16 @@ module LwfPlayer {
         }
 
         private getLwfPath(lwfName):string {
-            if (this.lwfSettings.lwfMap !== void 0 && typeof this.lwfSettings.lwfMap === "object") {
+            if (this.lwfSettings.lwfMap !== void 0) {
+                if (typeof this.lwfSettings.lwfMap === "function") {
+                    return this.lwfSettings.lwfMap(lwfName);
+                }
+
                 var path = this.lwfSettings.lwfMap[lwfName];
                 if (!/\.lwf$/.test(path)) {
                     path += ".lwf";
                 }
+
                 return path;
             }
 
