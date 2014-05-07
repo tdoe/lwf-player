@@ -35,7 +35,7 @@ declare module LwfPlayer {
         private player;
         private targetStage;
         private screenStage;
-        private eventStage;
+        private eventReceiveStage;
         private stageScale;
         private devicePixelRatio;
         private debugInfo;

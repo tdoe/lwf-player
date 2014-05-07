@@ -292,6 +292,15 @@ module LwfPlayer {
                 }
             }
 
+            /** force to disable use3D on Android devices */
+            if (Util.isAndroid) {
+                this.lwfSettings.use3D = false;
+                /** handle buggy css behaviour in certain devices */
+                if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) && this.rendererSelector.getRenderer() === RendererSelector.webkitCSSRenderer) {
+                    this.lwfSettings.quirkyClearRect = true;
+                }
+            }
+
             // For backward compatibility lwf-loader.
             this.lwfSettings.privateData["lwfLoader"] = this;
         }
