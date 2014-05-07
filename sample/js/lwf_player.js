@@ -594,7 +594,7 @@ var LwfPlayer;
                 }
                 if (this.lwf !== null && !this.pausing) {
                     for (var i = 0; i < this.inputQueue.length; i++) {
-                        this.inputQueue[i]();
+                        this.inputQueue[i].apply(this);
                     }
                     this.stageContractor.changeStageSize(this.lwf.width, this.lwf.height);
                     this.renderLwf();
@@ -683,29 +683,21 @@ var LwfPlayer;
             this.lwf.inputPress();
         };
 
-        Player.prototype.inputRelease = function (e) {
-            this.inputPoint(e);
-            this.lwf.inputRelease();
-        };
-
         Player.prototype.onMove = function (e) {
-            var _this = this;
             this.inputQueue.push(function () {
-                _this.inputPoint(e);
+                this.inputPoint(e);
             });
         };
 
         Player.prototype.onPress = function (e) {
-            var _this = this;
             this.inputQueue.push(function () {
-                _this.inputPress(e);
+                this.inputPress(e);
             });
         };
 
         Player.prototype.onRelease = function (e) {
-            var _this = this;
             this.inputQueue.push(function () {
-                _this.inputRelease(e);
+                this.lwf.inputRelease();
             });
         };
 

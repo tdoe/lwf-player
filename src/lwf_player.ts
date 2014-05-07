@@ -145,7 +145,7 @@ module LwfPlayer {
                 }
                 if (this.lwf !== null && !this.pausing) {
                     for (var i = 0; i < this.inputQueue.length; i++) {
-                        this.inputQueue[i]();
+                        this.inputQueue[i].apply(this);
                     }
                     this.stageContractor.changeStageSize(this.lwf.width, this.lwf.height);
                     this.renderLwf();
@@ -235,29 +235,21 @@ module LwfPlayer {
             this.lwf.inputPress();
         }
 
-        private inputRelease(e:Event):void {
-            this.inputPoint(e);
-            this.lwf.inputRelease();
-        }
-
         public onMove(e:Event):void {
-            var _this = this;
             this.inputQueue.push(function () {
-                _this.inputPoint(e);
+                this.inputPoint(e);
             });
         }
 
         public onPress(e:Event):void {
-            var _this = this;
             this.inputQueue.push(function () {
-                _this.inputPress(e);
+                this.inputPress(e);
             });
         }
 
         public onRelease(e:Event):void {
-            var _this = this;
             this.inputQueue.push(function () {
-                _this.inputRelease(e);
+                this.lwf.inputRelease();
             });
         }
 

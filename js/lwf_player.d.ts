@@ -158,7 +158,6 @@ declare module LwfPlayer {
         private destroyLwf();
         private inputPoint(e);
         private inputPress(e);
-        private inputRelease(e);
         public onMove(e: Event): void;
         public onPress(e: Event): void;
         public onRelease(e: Event): void;
