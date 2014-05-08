@@ -411,22 +411,29 @@ var LwfPlayer;
             this.privateData["lwfLoader"] = player;
         };
 
-        LwfSettings.prototype.prepareChildLwfSettings = function (lwf, lwfName, privateData) {
+        LwfSettings.prototype.prepareChildLwfSettings = function (lwf, lwfName, imageMap, privateData) {
+            var childSettings = new LwfSettings();
+            childSettings.privateData = {};
             for (var i in privateData) {
                 if (privateData.hasOwnProperty(i)) {
-                    this.privateData[i] = privateData[i];
+                    childSettings.privateData[i] = privateData[i];
                 }
             }
 
-            if (privateData.hasOwnProperty("imageMap")) {
-                this.imageMap = this.getImageMapper(privateData["imageMap"]);
+            if (imageMap !== void 0 || imageMap !== null) {
+                childSettings.imageMap = imageMap;
+            } else if (privateData.hasOwnProperty("imageMap")) {
+                childSettings.imageMap = this.getImageMapper(privateData["imageMap"]);
             }
 
-            this.fitForHeight = false;
-            this.fitForWidth = false;
-            this.parentLWF = lwf;
-            this.active = false;
-            this.lwf = this.getLwfPath(lwfName);
+            childSettings.fitForHeight = false;
+            childSettings.fitForWidth = false;
+            childSettings.parentLWF = lwf;
+            childSettings.active = false;
+            childSettings.lwf = this.getLwfPath(lwfName);
+            childSettings.stage = this.stage;
+
+            return childSettings;
         };
 
         LwfSettings.prototype.getImageMapper = function (imageMap) {
@@ -516,16 +523,15 @@ var LwfPlayer;
         Player.prototype.play = function () {
             var _this = this;
             this.stageContractor.addEventListeners();
-            this.requestLWF(function (_lwf) {
-                _this.lwf = _lwf;
-            });
-            this.loadLWFs(function (errors) {
-                if (errors === null) {
+            this.lwfSettings.onload = function (_lwf) {
+                if (_lwf !== null) {
+                    _this.lwf = _lwf;
                     _this.exec();
                 } else {
                     _this.handleLoadError();
                 }
-            });
+            };
+            this.cache.loadLWF(this.lwfSettings);
         };
 
         Player.prototype.pause = function () {
@@ -560,29 +566,18 @@ var LwfPlayer;
             return this.stageContractor;
         };
 
-        Player.prototype.requestLWF = function (onload) {
-            this.lwfSettings.onload = onload;
-            this.requests.push(this.lwfSettings);
-        };
-
-        Player.prototype.loadLWFs = function (onLoadAll) {
-            this.cache.loadLWFs(this.requests, onLoadAll);
-            this.requests = [];
-        };
-
         Player.prototype.loadLWF = function (lwf, lwfName, imageMap, privateData, callback) {
-            this.lwfSettings.prepareChildLwfSettings(lwf, lwfName, privateData);
-
+            var childSettings = this.lwfSettings.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData);
             var _this = this;
-            this.lwfSettings.onload = function (childLwf) {
+            childSettings.onload = function (childLwf) {
                 if (!childLwf) {
                     _this.handleLoadError();
-                    return callback(this.lwfSettings["error"], childLwf);
+                    return callback(childSettings["error"], childLwf);
                 }
                 return callback(null, childLwf);
             };
 
-            this.cache.loadLWF(this.lwfSettings);
+            this.cache.loadLWF(childSettings);
         };
 
         Player.prototype.handleLoadError = function () {

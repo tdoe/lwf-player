@@ -19,11 +19,11 @@ module LwfPlayer {
             this.stageContractor = stageContractor;
         }
 
-        public setIsPreventDefaultEnabled(isPreventDefaultEnabled:boolean) {
+        public setIsPreventDefaultEnabled(isPreventDefaultEnabled:boolean):void {
             this.isPreventDefaultEnabled = isPreventDefaultEnabled;
         }
 
-        public getInputPoint(event:any) {
+        public getInputPoint(event:any):Coordinator {
             if (this.isPreventDefaultEnabled) {
                 event.preventDefault();
             }

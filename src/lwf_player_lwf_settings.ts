@@ -67,7 +67,7 @@ module LwfPlayer {
 
         public worker:boolean;
 
-        public prepareLwfSettings(player:Player, lwfSettings:LwfSettings) {
+        public prepareLwfSettings(player:Player, lwfSettings:LwfSettings):void {
             for (var i in lwfSettings) {
                 if (lwfSettings.hasOwnProperty(i)) {
                     this[i] = lwfSettings[i];
@@ -111,22 +111,29 @@ module LwfPlayer {
             this.privateData["lwfLoader"] = player;
         }
 
-        public prepareChildLwfSettings(lwf:LWF.LWF, lwfName:string, privateData:Object) {
+        public prepareChildLwfSettings(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object):LwfSettings {
+            var childSettings = new LwfSettings();
+            childSettings.privateData = {};
             for (var i in privateData) {
                 if (privateData.hasOwnProperty(i)) {
-                    this.privateData[i] = privateData[i];
+                    childSettings.privateData[i] = privateData[i];
                 }
             }
 
-            if (privateData.hasOwnProperty("imageMap")) {
-                this.imageMap = this.getImageMapper(privateData["imageMap"]);
+            if (imageMap !== void 0 || imageMap !== null) {
+                childSettings.imageMap = imageMap;
+            } else if (privateData.hasOwnProperty("imageMap")) {
+                childSettings.imageMap = this.getImageMapper(privateData["imageMap"]);
             }
 
-            this.fitForHeight = false;
-            this.fitForWidth = false;
-            this.parentLWF = lwf;
-            this.active = false;
-            this.lwf = this.getLwfPath(lwfName);
+            childSettings.fitForHeight = false;
+            childSettings.fitForWidth = false;
+            childSettings.parentLWF = lwf;
+            childSettings.active = false;
+            childSettings.lwf = this.getLwfPath(lwfName);
+            childSettings.stage = this.stage;
+
+            return childSettings;
         }
 
         private getImageMapper(imageMap:any):Function {

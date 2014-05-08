@@ -34,7 +34,7 @@ module LwfPlayer {
         /** For displaying debug FPS information */
         public static debugInfoElementId:number = 0;
 
-        public static initUtil() {
+        public static initUtil():void {
             if (typeof global.performance === "undefined") {
                 global.performance = {};
             }

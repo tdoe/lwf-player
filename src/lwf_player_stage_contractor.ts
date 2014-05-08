@@ -43,7 +43,7 @@ module LwfPlayer {
             }
         }
 
-        public getDevicePixelRatio() {
+        public getDevicePixelRatio():number {
             return this.devicePixelRatio;
         }
 

@@ -24,11 +24,11 @@ module LwfPlayer {
             this.autoSelectRenderer();
         }
 
-        public getRenderer() {
+        public getRenderer():string {
             return this.renderer;
         }
 
-        public setRenderer(rendererName:string) {
+        public setRenderer(rendererName:string):void {
             this.renderer = RendererSelector.canvasRenderer;
 
             if (rendererName === RendererSelector.rendererWebkitCSS) {

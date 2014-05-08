@@ -56,16 +56,15 @@ module LwfPlayer {
         public play():void {
             var _this = this;
             this.stageContractor.addEventListeners();
-            this.requestLWF(function (_lwf:LWF.LWF) {
-                _this.lwf = _lwf;
-            });
-            this.loadLWFs(function (errors:Error) {
-                if (errors === null) {
+            this.lwfSettings.onload = function (_lwf:LWF.LWF) {
+                if (_lwf !== null) {
+                    _this.lwf = _lwf;
                     _this.exec();
                 } else {
                     _this.handleLoadError();
                 }
-            });
+            };
+            this.cache.loadLWF(this.lwfSettings);
         }
 
         public pause():void {
@@ -96,33 +95,23 @@ module LwfPlayer {
             return this.rendererSelector;
         }
 
-        public getStageContractor() {
+        public getStageContractor():StageContractor {
             return this.stageContractor;
         }
 
-        private requestLWF(onload:Function):void {
-            this.lwfSettings.onload = onload;
-            this.requests.push(this.lwfSettings);
-        }
-
-        private loadLWFs(onLoadAll:Function):void {
-            this.cache.loadLWFs(this.requests, onLoadAll);
-            this.requests = [];
-        }
-
+        // For backward compatibility lwf-loader.
         private loadLWF(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void {
-            this.lwfSettings.prepareChildLwfSettings(lwf, lwfName, privateData);
-
+            var childSettings:LwfSettings = this.lwfSettings.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData);
             var _this = this;
-            this.lwfSettings.onload = function (childLwf:LWF.LWF) {
+            childSettings.onload = function (childLwf:LWF.LWF) {
                 if (!childLwf) {
                     _this.handleLoadError();
-                    return callback(this.lwfSettings["error"], childLwf);
+                    return callback(childSettings["error"], childLwf);
                 }
                 return callback(null, childLwf);
             };
 
-            this.cache.loadLWF(this.lwfSettings);
+            this.cache.loadLWF(childSettings);
         }
 
         private handleLoadError():void {
@@ -163,8 +152,6 @@ module LwfPlayer {
         }
 
         private initLwf():void {
-
-
             try {
                 switch (this.rendererSelector.getRenderer()) {
                     case RendererSelector.canvasRenderer:

@@ -109,7 +109,7 @@ declare module LwfPlayer {
         public useVertexColor: boolean;
         public worker: boolean;
         public prepareLwfSettings(player: Player, lwfSettings: LwfSettings): void;
-        public prepareChildLwfSettings(lwf: LWF.LWF, lwfName: string, privateData: Object): void;
+        public prepareChildLwfSettings(lwf: LWF.LWF, lwfName: string, imageMap: any, privateData: Object): LwfSettings;
         private getImageMapper(imageMap);
         private getLwfPath(lwfName);
     }
@@ -146,8 +146,6 @@ declare module LwfPlayer {
         public getLwfSettings(): LwfSettings;
         public getRendererSelector(): RendererSelector;
         public getStageContractor(): StageContractor;
-        private requestLWF(onload);
-        private loadLWFs(onLoadAll);
         private loadLWF(lwf, lwfName, imageMap, privateData, callback);
         private handleLoadError();
         private handleException(exception);
