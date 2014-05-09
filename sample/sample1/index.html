@@ -6,45 +6,42 @@
     <meta name="viewport"
           content="width=device-width,initial-scale=1.0,user-scalable=no,maximum-scale=1.0,minimum-scale=1.0"/>
 
-    <script type="text/javascript" src="../js/lwf.js"></script>
-    <script type="text/javascript" src="../js/lwf_player.js"></script>
-
-    <script type="text/javascript">
-        window.addEventListener('DOMContentLoaded', function () {
-            var playerSettings = {
-                targetStage: document.getElementById('lwf'), // require
-                renderer: "webgl", // optional, as auto select.
-                debug: true // optional
-            };
-
-            var lwfSettings = {
-                lwf: "neko.lwf", // require
-                prefix: "",
-                imagePrefix: "",
-                privateData: {
-                },
-                imageMap: {
-                },
-                handler: {
-                    loadError: function (e) {
-                        alert("エラーだよ (・ω<)");
-                    },
-                    exception: function (e) {
-                        alert("例外だよ (・ω<)");
-                    }
-                },
-                lwfMap: {
-                    nekochild: "nekochild.lwf"
-                }
-            };
-
-            var player = new LwfPlayer.Player(playerSettings, lwfSettings);
-            player.play();
-        });
-
-    </script>
 </head>
 <body>
 <div id="lwf"></div>
+<script type="text/javascript" src="../js/lwf.js"></script>
+<script type="text/javascript" src="../js/lwf_player.js"></script>
+
+<script type="text/javascript">
+    window.addEventListener('DOMContentLoaded', function () {
+
+        var playerSettings = new LwfPlayer.PlayerSettings();
+        playerSettings.targetStage = document.getElementById('lwf');// require any stage element.
+//            playerSettings.renderer = LwfPlayer.RendererSelector.canvasRenderer; // option. see other renderer is LwfPlayer.RendererSelector class.
+        playerSettings.debug = true;// option. true is running debug mode.
+
+        var lwfSettings = new LwfPlayer.LwfSettings();
+        lwfSettings.lwf = "neko.lwf"; // require LWF file path.
+        lwfSettings.prefix = "";
+        lwfSettings.imagePrefix = "";
+        lwfSettings.privateData = {};
+        lwfSettings.imageMap = {};
+        lwfSettings.handler = {
+            loadError: function (e) {
+                alert("エラーだよ (・ω<)");
+            },
+            exception: function (e) {
+                alert("例外だよ (・ω<)");
+            }
+        };
+        lwfSettings.lwfMap = {
+            nekochild: "nekochild.lwf"
+        };
+
+        var player = new LwfPlayer.Player(playerSettings, lwfSettings);
+        player.play();
+
+    });
+</script>
 </body>
 </html>

@@ -1,11 +1,17 @@
 /**
  * Created by tdoe on 5/6/14.
+ *
+ * This class is for LWF animation rendering element operation.
  */
 
 /// <reference path="lwf_player_util.ts"/>
 /// <reference path="lwf_player_renderer_selector.ts"/>
 
+declare var global:any; // window or worker assigned by LWF
+
 module LwfPlayer {
+
+    "use strict";
 
     export class StageContractor {
 
@@ -19,16 +25,25 @@ module LwfPlayer {
         private from:number = global.performance.now();
         private currentFPS:number = 0;
         private execCount:number = 0;
+        private stageWidth = 0;
+        private stageHeight = 0;
+        private stageStyleWidth = 0;
+        private stageStyleHeight = 0;
 
+        /**
+         * this class is need Player instance.
+         *
+         * @param player
+         */
         constructor(player:Player) {
             this.player = player;
 
             this.targetStage = this.player.getPlayerSettings().targetStage;
             if (this.targetStage === void 0 || this.targetStage === null) {
-                throw new Error();
+                throw new Error("not setting target stage.");
             }
 
-            /** prepare LWF stage */
+            // prepare LWF stage
             if (this.targetStage.style.position === "static" || this.targetStage.style.position === "") {
                 this.targetStage.style.position = "relative";
             }
@@ -43,80 +58,167 @@ module LwfPlayer {
             }
         }
 
+        /**
+         * get devicePixelRatio.
+         *
+         * @returns {number}
+         */
         public getDevicePixelRatio():number {
             return this.devicePixelRatio;
         }
 
+        /**
+         * get screen stage scale.
+         *
+         * @returns {number}
+         */
         public getStageScale():number {
             return this.stageScale;
         }
 
+        /**
+         * get screen stage element.
+         *
+         * @returns {HTMLElement}
+         */
         public getScreenStage():HTMLElement {
             return this.screenStage;
         }
 
+        /**
+         * get screen width by number convert string.
+         *
+         * @returns {number}
+         */
         public getScreenStageWidth():number {
             return +this.screenStage.getAttribute("width");
         }
 
+        /**
+         * get screen height by number convert string.
+         *
+         * @returns {number}
+         */
         public getScreenStageHeight():number {
             return +this.screenStage.getAttribute("height");
         }
 
+        /**
+         * calculation to set stage size.
+         * stage size is passed to LWF
+         *
+         * @param width  LWF width
+         * @param height LWF height
+         */
         public changeStageSize(width:number, height:number):void {
-            var stageWidth = 0;
-            var stageHeight = 0;
+            var screenWidth = Util.getStageWidth();
+            var screenHeight = Util.getStageHeight();
 
-            var screenWidth = global.innerWidth;
-            var screenHeight = global.innerHeight;
-
-            var stageRatio = width / height;
-            var screenRatio = screenWidth / screenHeight;
-
-            if (Util.isAndroid) {
-                /** fix innerWidth/Height for old Android devices */
-                if (global.innerWidth > global.screen.width) {
-                    stageWidth = global.screen.width;
-                }
-                if (global.innerHeight > global.screen.height) {
-                    stageHeight = global.screen.height;
-                }
+            if (width > screenWidth) {
+                width = screenWidth;
             }
-
-            if (width > global.innerWidth) {
-                width = global.innerWidth;
-            }
-            if (height > global.innerHeight) {
-                height = global.innerHeight;
+            if (height > screenHeight) {
+                height = screenHeight;
             }
 
             if (this.player.getLwfSettings().fitForWidth) {
-                stageWidth = Math.round(width);
-                stageHeight = Math.round(width * height / width);
-                this.stageScale = stageWidth / stageWidth;
+                this.fitForWidth(width, height);
             } else if (this.player.getLwfSettings().fitForHeight) {
-                stageWidth = Math.round(height * width / height);
-                stageHeight = Math.round(height);
-                this.stageScale = stageHeight / stageHeight;
+                this.fitForHeight(width, height);
             } else {
-                if (screenRatio > stageRatio) {
-                    stageWidth = width * (screenHeight / height);
-                    stageHeight = screenHeight;
-                } else {
-                    stageWidth = screenWidth;
-                    stageHeight = height * (screenWidth / width);
-                }
+                this.fitToScreen(width, height);
             }
 
-            this.screenStage.style.width = this.eventReceiveStage.style.width = stageWidth + "px";
-            this.screenStage.style.height = this.eventReceiveStage.style.height = stageHeight + "px";
+            this.screenStage.style.width = this.eventReceiveStage.style.width = this.stageStyleWidth + "px";
+            this.screenStage.style.height = this.eventReceiveStage.style.height = this.stageStyleHeight + "px";
 
-            this.screenStage.setAttribute("width", Math.floor(stageWidth * this.devicePixelRatio) + "");
-            this.screenStage.setAttribute("height", Math.floor(stageHeight * this.devicePixelRatio) + "");
-            this.eventReceiveStage.setAttribute("width", Math.floor(stageWidth * this.devicePixelRatio) + "");
-            this.eventReceiveStage.setAttribute("height", Math.floor(stageHeight * this.devicePixelRatio) + "");
+            this.screenStage.setAttribute("width", this.stageWidth + "");
+            this.screenStage.setAttribute("height", this.stageHeight + "");
         }
 
+        /**
+         * calc stage size by LWF size.
+         * For fit to LWF width.
+         *
+         * @param lwfWidth
+         * @param lwfHeight
+         */
+        private fitForWidth(lwfWidth:number, lwfHeight:number) {
+            this.stageStyleWidth = Math.round(lwfWidth);
+            this.stageStyleHeight = Math.round(lwfWidth * lwfHeight / lwfWidth);
+            this.setStageWidthAndHeight();
+            this.stageScale = this.stageStyleWidth / this.stageWidth;
+        }
+
+        /**
+         * calc stage size by LWF size.
+         * For fit to LWF height.
+         *
+         * @param lwfWidth
+         * @param lwfHeight
+         */
+        private fitForHeight(lwfWidth:number, lwfHeight:number) {
+            this.stageStyleWidth = Math.round(lwfHeight * lwfWidth / lwfHeight);
+            this.stageStyleHeight = Math.round(lwfHeight);
+            this.setStageWidthAndHeight();
+            this.stageScale = this.stageStyleHeight / this.stageHeight;
+        }
+
+        /**
+         * calc stage size by screen-size.
+         * For full screen LWF display.
+         *
+         * @param lwfWidth
+         * @param lwfHeight
+         */
+        private fitToScreen(lwfWidth:number, lwfHeight:number) {
+            var screenWidth = Util.getStageWidth();
+            var screenHeight = Util.getStageHeight();
+
+            var stageRatio = lwfWidth / lwfHeight;
+            var screenRatio = screenWidth / screenHeight;
+
+            if (screenRatio > stageRatio) {
+                this.stageStyleWidth = lwfWidth * (screenHeight / lwfHeight);
+                this.stageStyleHeight = screenHeight;
+                this.setStageWidthAndHeight();
+                this.stageScale = this.stageStyleWidth / this.stageWidth;
+            } else {
+                this.stageStyleWidth = screenWidth;
+                this.stageStyleHeight = lwfHeight * (screenWidth / lwfWidth);
+                this.setStageWidthAndHeight();
+                this.stageScale = this.stageStyleHeight / this.stageHeight;
+            }
+        }
+
+        /**
+         * screen stage size * devicePixelRatio for High-definition screen
+         */
+        private setStageWidthAndHeight() {
+            this.stageWidth = Math.floor(this.stageStyleWidth * this.devicePixelRatio);
+            this.stageHeight = Math.floor(this.stageStyleHeight * this.devicePixelRatio);
+        }
+
+        /**
+         * remove event listeners
+         * call before LWF play.
+         */
+        public addEventListeners():void {
+            if (Util.isTouchEventEnabled) {
+                this.eventReceiveStage.addEventListener("touchmove", this.player.onMove, false);
+                this.eventReceiveStage.addEventListener("touchstart", this.player.onPress, false);
+                this.eventReceiveStage.addEventListener("touchend", this.player.onRelease, false);
+            } else {
+                this.eventReceiveStage.addEventListener("mousedown", this.player.onPress, false);
+                this.eventReceiveStage.addEventListener("mousemove", this.player.onMove, false);
+                this.eventReceiveStage.addEventListener("mouseup", this.player.onRelease, false);
+            }
+        }
+
+        /**
+         * remove event listeners
+         * call when LWF destroy.
+         */
         public removeEventListeners():void {
             if (Util.isTouchEventEnabled) {
                 this.eventReceiveStage.removeEventListener("touchstart", this.player.onPress, false);
@@ -129,23 +231,10 @@ module LwfPlayer {
             }
         }
 
-        public addEventListeners():void {
-            if (Util.isTouchEventEnabled) {
-                /** handle special behaviour of touch event on certain devices */
-                if (Util.isAndroid && (Util.isChrome || / SC-0/.test(Util.ua))) {
-                    document.body.addEventListener("touchstart", function () {
-                    });
-                }
-                this.eventReceiveStage.addEventListener("touchstart", this.player.onPress, false);
-                this.eventReceiveStage.addEventListener("touchmove", this.player.onMove, false);
-                this.eventReceiveStage.addEventListener("touchend", this.player.onRelease, false);
-            } else {
-                this.eventReceiveStage.addEventListener("mousedown", this.player.onPress, false);
-                this.eventReceiveStage.addEventListener("mousemove", this.player.onMove, false);
-                this.eventReceiveStage.addEventListener("mouseup", this.player.onRelease, false);
-            }
-        }
-
+        /**
+         * create LWF animation rendering element.
+         * @param rendererSelector
+         */
         public createScreenStage(rendererSelector:RendererSelector):void {
             if (rendererSelector.getRenderer() === RendererSelector.canvasRenderer ||
                 rendererSelector.getRenderer() === RendererSelector.webGLRenderer) {
@@ -160,29 +249,28 @@ module LwfPlayer {
             this.screenStage.style.top = pos["top"] + "px";
             this.screenStage.style.left = pos["left"] + "px";
             this.screenStage.style.zIndex = this.targetStage.style.zIndex + 1;
-
-            /* tune opacity for SH devices using Android 2.3.5-2.3.7 with WebkitCSS Renderer */
-            if (rendererSelector.getRenderer() === RendererSelector.webkitCSSRenderer &&
-                /Android 2\.3\.[5-7]/.test(Util.ua) &&
-                /SH/.test(Util.ua)) {
-                this.screenStage.style.opacity = "0.9999";
-            }
+            this.screenStage.style.opacity = Util.getOpacity(rendererSelector.getRenderer());
 
             this.targetStage.appendChild(this.screenStage);
-
-            /** use event receiver for avoiding Galaxy S3"s translateZ bug */
-            if (Util.isSp) {
-                this.eventReceiveStage = document.createElement("div");
-                this.eventReceiveStage.style.position = "absolute";
-                this.eventReceiveStage.style.top = pos["top"] + "px";
-                this.eventReceiveStage.style.left = pos["left"] + "px";
-                this.eventReceiveStage.style.zIndex = this.screenStage.style.zIndex + 1;
-                this.targetStage.appendChild(this.eventReceiveStage);
-            } else {
-                this.eventReceiveStage = this.targetStage;
-            }
         }
 
+        /**
+         * create mouse or touch event receive element.
+         */
+        public createEventReceiveStage():void {
+            var pos = this.player.getLwfSettings().pos;
+
+            this.eventReceiveStage = document.createElement("div");
+            this.eventReceiveStage.style.position = "absolute";
+            this.eventReceiveStage.style.top = pos["top"] + "px";
+            this.eventReceiveStage.style.left = pos["left"] + "px";
+            this.eventReceiveStage.style.zIndex = this.screenStage.style.zIndex + 1;
+            this.targetStage.appendChild(this.eventReceiveStage);
+        }
+
+        /**
+         * Display debug information.
+         */
         public viewDebugInfo():void {
             if (this.debugInfo === null) {
                 this.debugInfo = document.createElement("div");
@@ -191,13 +279,12 @@ module LwfPlayer {
                 this.debugInfo.style.left = "0px";
                 this.debugInfo.style.zIndex = "9999";
                 this.debugInfo.style.color = "red";
-                this.debugInfo.className = "lwfPlayerDebugInfo";
+                this.debugInfo.id = "__lwfPlayerDebugInfoID";
                 this.targetStage.appendChild(this.debugInfo);
             }
 
             if (this.execCount % 60 === 0) {
                 var _time = global.performance.now();
-
                 this.currentFPS = Math.round(60000.0 / (_time - this.from));
                 this.from = _time;
                 this.execCount = 0;
@@ -205,9 +292,12 @@ module LwfPlayer {
 
             var x = this.player.getCoordinator().getX();
             var y = this.player.getCoordinator().getY();
+            var renderer = this.player.getRendererSelector().getRenderer().substring(3);
+            renderer = renderer.substring(0, renderer.lastIndexOf("Renderer"));
             this.execCount++;
-            this.debugInfo.innerHTML = this.player.getRendererSelector().getRenderer() +
-                " " + this.currentFPS + "fps " + "X:" + x + " Y:" + y;
+            this.debugInfo.innerHTML = renderer + " " + this.currentFPS + "fps " + "X:" + x + " Y:" + y + "<br>" +
+                "sw:" + this.stageStyleWidth + " sh:" + this.stageStyleHeight +
+                " w:" + this.stageWidth + " h:" + this.stageHeight + " s:" + this.stageScale + " dpr:" + this.getDevicePixelRatio();
         }
     }
 }

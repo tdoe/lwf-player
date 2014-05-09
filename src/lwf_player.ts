@@ -1,5 +1,8 @@
 /**
  * Created by tdoe on 5/5/14.
+ *
+ * This class is LwfPlayer main class.
+ * using other LwfPlayer.* class, control LWF animation.
  */
 
 /// <reference path="lib/lwf.d.ts"/>
@@ -17,35 +20,42 @@ module LwfPlayer {
 
     "use strict";
 
-    // init "requestAnimationFrame" and "performance.now"
-    Util.initUtil();
-
     export class Player {
 
+        // fromTime LWF members.
         private lwf:LWF.LWF = null;
         private cache:LWF.ResourceCache = null;
 
+        // LwfPlayer module classes members.
         private playerSettings:PlayerSettings = null;
         private lwfSettings:LwfSettings = new LwfSettings();
         private stageContractor:StageContractor = null;
         private coordinator:Coordinator = null;
         private rendererSelector:RendererSelector = new RendererSelector();
 
+        // this class only members.
         private inputQueue:Function[] = [];
-        private requests:Object[] = [];
-        private from:number = global.performance.now();
-
+        private fromTime:number = global.performance.now();
         private pausing:Boolean = false;
         private destroyed:boolean = false;
 
+        /**
+         * initialize this Player.
+         *
+         * @param {LwfPlayer.PlayerSettings} playerSettings Require targetStage:HTMLElement.
+         * @param {LwfPlayer.LwfSettings}    lwfSettings    Require lwf:load LWF path.
+         */
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
             this.playerSettings = playerSettings;
             this.lwfSettings.prepareLwfSettings(this, lwfSettings);
+
             if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
                 this.rendererSelector.setRenderer(this.playerSettings.renderer);
             }
+
             this.stageContractor = new StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
+            this.stageContractor.createEventReceiveStage();
             this.coordinator = new Coordinator(this.stageContractor);
             this.lwfSettings.stage = this.stageContractor.getScreenStage();
 
@@ -53,6 +63,9 @@ module LwfPlayer {
             this.initLwf();
         }
 
+        /**
+         * load and play LWF.
+         */
         public play():void {
             var _this = this;
             this.stageContractor.addEventListeners();
@@ -67,41 +80,89 @@ module LwfPlayer {
             this.cache.loadLWF(this.lwfSettings);
         }
 
+        /**
+         * stop lwf animation.
+         */
         public pause():void {
             this.pausing = true;
         }
 
+        /**
+         * start lwf animation fromTime pause state.
+         */
         public resume():void {
             this.pausing = false;
         }
 
+        /**
+         * Caution! stop animation, and destroy LWF instance .
+         */
         public destroy():void {
             this.destroyed = true;
         }
 
+        /**
+         * return player using LwfPlayer.Coordinator instance.
+         *
+         * @returns LwfPlayer.Coordinator
+         */
         public getCoordinator():Coordinator {
             return this.coordinator;
         }
 
+        /**
+         * return player using LwfPlayer.PlayerSettings instance.
+         *
+         * @returns LwfPlayer.PlayerSettings
+         */
         public getPlayerSettings():PlayerSettings {
             return this.playerSettings;
         }
 
+        /**
+         * return player using LwfPlayer.LwfSettings instance.
+         *
+         * @returns LwfPlayer.LwfSettings
+         */
         public getLwfSettings():LwfSettings {
             return this.lwfSettings;
         }
 
+        /**
+         * return player using LwfPlayer.RendererSelector instance.
+         *
+         * @returns LwfPlayer.RendererSelector
+         */
         public getRendererSelector():RendererSelector {
             return this.rendererSelector;
         }
 
+        /**
+         * return player using LwfPlayer.StageContractor instance.
+         *
+         * @returns LwfPlayer.StageContractor
+         */
         public getStageContractor():StageContractor {
             return this.stageContractor;
         }
 
-        // For backward compatibility lwf-loader.
+        /**
+         *  called by external LWF.
+         *  Load external LWF resource to attach on current running LWF.
+         *  For backward compatibility lwf-loader.
+         *
+         * @param lwf         parent LWF instance.
+         * @param lwfName     child-LWF ID.
+         * @param imageMap    for child-LWF imageMap object or function.
+         * @param privateData for child-LWF object.
+         * @param callback    callback to return attach LWF instance.
+         *
+         * @see https://github.com/gree/lwf-loader
+         */
         private loadLWF(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void {
-            var childSettings:LwfSettings = this.lwfSettings.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData);
+            var childSettings:LwfSettings =
+                    LwfLoader.prepareChildLwfSettings(
+                        lwf, lwfName, imageMap, privateData, this.lwfSettings);
             var _this = this;
             childSettings.onload = function (childLwf:LWF.LWF) {
                 if (!childLwf) {
@@ -114,6 +175,11 @@ module LwfPlayer {
             this.cache.loadLWF(childSettings);
         }
 
+        /**
+         * handle load error.
+         * can run the error handler that was passed.
+         * It is recommended to pass handler["loadError"] function.
+         */
         private handleLoadError():void {
             if (this.lwfSettings.handler && typeof this.lwfSettings.handler["loadError"] === "function") {
                 this.lwfSettings.handler["loadError"](this.lwfSettings.error);
@@ -121,6 +187,13 @@ module LwfPlayer {
             console.error("[LWF] load error: %o", this.lwfSettings.error);
         }
 
+        /**
+         * handle exception.
+         * can run the Exception handler that was passed.
+         * It is recommended to pass handler["exception"] function.
+         *
+         * @param {any} exception
+         */
         private handleException(exception):void {
             if (this.lwfSettings.handler && typeof this.lwfSettings.handler["exception"] === "function") {
                 this.lwfSettings.handler["exception"](exception);
@@ -128,6 +201,10 @@ module LwfPlayer {
             console.error("[LWF] load Exception: %o", exception);
         }
 
+        /**
+         * exec LWF rendering, and dispatch events.
+         * It is loop by requestAnimationFrame.
+         */
         private exec():void {
             var _this = this;
             try {
@@ -151,6 +228,10 @@ module LwfPlayer {
             }
         }
 
+        /**
+         * Initialize LWF resources.
+         * select LWF renderer, and get LWF resource cache.
+         */
         private initLwf():void {
             try {
                 switch (this.rendererSelector.getRenderer()) {
@@ -177,13 +258,15 @@ module LwfPlayer {
             }
         }
 
+        /**
+         * Call LWF rendering processes.
+         */
         private renderLwf():void {
-            var time = global.performance.now();
-            var tick = time - this.from;
             var stageWidth = this.stageContractor.getScreenStageWidth();
             var stageHeight = this.stageContractor.getScreenStageHeight();
-
-            this.from = time;
+            var toTime = global.performance.now();
+            var tickTack = (toTime - this.fromTime) / 1000;//fast forward fromTime -> toTime
+            this.fromTime = toTime;
 
             this.lwf.property.clear();
 
@@ -198,7 +281,7 @@ module LwfPlayer {
             }
 
             this.lwf.property.moveTo(0, 0);
-            this.lwf.exec(tick / 1000);
+            this.lwf.exec(tickTack);
             this.lwf.render();
 
             if (this.playerSettings.debug) {
@@ -206,6 +289,9 @@ module LwfPlayer {
             }
         }
 
+        /**
+         * destroy LWF resource and remove event listener.
+         */
         private destroyLwf():void {
             if (this.lwf !== null) {
                 this.stageContractor.removeEventListeners();
@@ -218,34 +304,62 @@ module LwfPlayer {
             console.log("LWF is destroyed.");
         }
 
+        /**
+         * pass the coordinates to LWF from mouse or touch event.
+         *
+         * @param {Event} e
+         */
         private inputPoint(e:Event):void {
-            var coordinate = this.coordinator.getInputPoint(e);
-            this.lwf.inputPoint(coordinate.getX(), coordinate.getY());
+            this.coordinator.setCoordinate(e);
+            this.lwf.inputPoint(this.coordinator.getX(), this.coordinator.getY());
         }
 
+        /**
+         * pass the coordinates and input to LWF from mouse or touch event.
+         *
+         * @param {Event} e
+         */
         private inputPress(e:Event):void {
             this.inputPoint(e);
             this.lwf.inputPress();
         }
 
+        /**
+         * push queue the mouse or touch coordinates.
+         *
+         * @param {Event} e
+         */
         public onMove(e:Event):void {
             this.inputQueue.push(function () {
                 this.inputPoint(e);
             });
         }
 
+        /**
+         * push queue the press by mouse or touch coordinates.
+         *
+         * @param {Event} e
+         */
         public onPress(e:Event):void {
             this.inputQueue.push(function () {
                 this.inputPress(e);
             });
         }
 
+        /**
+         * push queue the release by mouse or touch coordinates.
+         *
+         * @param {Event} e
+         */
         public onRelease(e:Event):void {
             this.inputQueue.push(function () {
                 this.lwf.inputRelease();
             });
         }
 
+        /**
+         * It is restraint "this" reference to for event listener.
+         */
         private restraint():void {
             var __bind = function (fn:Function, me:Player) {
                 return function () {

@@ -1,9 +1,17 @@
 /**
  * Created by tdoe on 5/5/14.
+ *
+ * This class is LWF parameter setting class.
+ *
+ * Child LWF can use this class instance,
+ * but a do not use the same instance in other children.
+ * because configuration conflict occurs.
+ * If you are in need of the same setting, use a deep copy object.
  */
 
-/// <reference path="lwf_player.ts"/>
-/// <reference path="lwf_player_renderer_selector.ts"/>
+    /// <reference path="lwf_player.ts"/>
+    /// <reference path="lwf_player_renderer_selector.ts"/>
+    /// <reference path="lwf_player_lwf_loader.ts"/>
 
 module LwfPlayer {
 
@@ -67,6 +75,13 @@ module LwfPlayer {
 
         public worker:boolean;
 
+        /**
+         * require members init.
+         *
+         * @param player
+         *
+         * @param lwfSettings
+         */
         public prepareLwfSettings(player:Player, lwfSettings:LwfSettings):void {
             for (var i in lwfSettings) {
                 if (lwfSettings.hasOwnProperty(i)) {
@@ -85,58 +100,30 @@ module LwfPlayer {
             if (this.pos === void 0) {
                 this.pos = {
                     "position": "absolute",
-                    "top": 0,
-                    "left": 0
+                    "top"     : 0,
+                    "left"    : 0
                 };
             }
 
-            this.imageMap = this.getImageMapper(this.imageMap);
+            this.imageMap = LwfSettings.getImageMapper(this.imageMap);
 
             if (Util.isAndroid) {
-                /** force to disable use3D on Android devices */
-                this.use3D = false;
-
-                if (this.worker) {
-                    this.worker = Util.useWebWorker;
-                }
-
-                /** handle buggy css behaviour in certain devices */
-                if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) &&
-                    player.getRendererSelector().getRenderer() === RendererSelector.webkitCSSRenderer) {
-                    this.quirkyClearRect = true;
-                }
+                Util.forceSettingForAndroid(this, player.getRendererSelector().getRenderer());
             }
 
-            // For backward compatibility lwf-loader.
-            this.privateData["lwfLoader"] = player;
+            LwfLoader.setLoader(player, this);
         }
 
-        public prepareChildLwfSettings(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object):LwfSettings {
-            var childSettings = new LwfSettings();
-            childSettings.privateData = {};
-            for (var i in privateData) {
-                if (privateData.hasOwnProperty(i)) {
-                    childSettings.privateData[i] = privateData[i];
-                }
-            }
-
-            if (imageMap !== void 0 || imageMap !== null) {
-                childSettings.imageMap = imageMap;
-            } else if (privateData.hasOwnProperty("imageMap")) {
-                childSettings.imageMap = this.getImageMapper(privateData["imageMap"]);
-            }
-
-            childSettings.fitForHeight = false;
-            childSettings.fitForWidth = false;
-            childSettings.parentLWF = lwf;
-            childSettings.active = false;
-            childSettings.lwf = this.getLwfPath(lwfName);
-            childSettings.stage = this.stage;
-
-            return childSettings;
-        }
-
-        private getImageMapper(imageMap:any):Function {
+        /**
+         * Generates function that takes image name as an input and returns the path corresponding to it.
+         * If input is a function, return directly. Otherwise, it tries to set path from the previous set imageMap array.
+         * ImageMap will be passed into LWF directly.
+         *
+         * @param imageMap image map data
+         *
+         * @return function to replace path by maps
+         */
+        public static getImageMapper(imageMap:any):Function {
             if (typeof imageMap == "function") {
                 return imageMap;
             }
@@ -149,7 +136,14 @@ module LwfPlayer {
             };
         }
 
-        private getLwfPath(lwfName):string {
+        /**
+         * return LWF file path.
+         *
+         * @param lwfName LWF name.
+         *
+         * @returns {string|Function} LWF file path.
+         */
+        public getLwfPath(lwfName:string):any {
             if (this.lwfMap !== void 0) {
                 if (typeof this.lwfMap === "function") {
                     return this.lwfMap(lwfName);
@@ -163,12 +157,7 @@ module LwfPlayer {
                 return path;
             }
 
-            var _lwfName = lwfName;
-            if (lwfName.indexOf("/") >= 0) {
-                _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
-            }
-
-            return lwfName + "/_/" + _lwfName + ".lwf";
+            return LwfLoader.getLwfPath(lwfName);
         }
     }
 }

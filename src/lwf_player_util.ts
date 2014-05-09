@@ -1,6 +1,10 @@
 /**
  * Created by tdoe on 5/5/14.
+ *
+ * This class is for utility and Cross browser polyfills.
  */
+
+/// <reference path="lwf_player_renderer_selector.ts"/>
 
 declare var global:any; // window or worker assigned by LWF
 
@@ -10,65 +14,142 @@ module LwfPlayer {
 
     export class Util {
 
-        /** current useragent */
+        /**
+         * current useragent
+         */
         public static ua = navigator.userAgent;
 
-        /** Whether currently running on iOS @type {boolean} */
+        /**
+         * Whether currently running on iOS
+         */
         public static isiOS:boolean = /iP(ad|hone|od)/.test(Util.ua);
 
-        /** Whether currently running on Android @type {boolean} */
+        /**
+         * Whether currently running on Android
+         */
         public static isAndroid:boolean = (/Android/.test(Util.ua));
 
-        /** Whether currently running on SP  @type {boolean} */
+        /**
+         * Whether currently running on SP
+         */
         public static isSp:boolean = Util.isiOS || Util.isAndroid;
 
-        /** Whether currently running on Chrome */
+        /**
+         * Whether currently running on Chrome
+         */
         public static isChrome:boolean = /Chrome/.test(Util.ua);
 
-        /** Whether touch event is enabled, by default this refers whether currently running on SP */
+        /**
+         * Whether touch event is enabled, by default this refers whether currently running on SP
+         */
         public static isTouchEventEnabled:boolean = Util.isSp;
 
-        /** Turn off Web Worker on Android native browser, allow it runs on Android Chrome  @type {boolean} */
+        /**
+         * Turn off Web Worker on Android native browser, allow it runs on Android Chrome
+         */
         public static useWebWorker:boolean = !Util.isAndroid || Util.isChrome;
 
-        /** For displaying debug FPS information */
-        public static debugInfoElementId:number = 0;
+        /**
+         * isPreventDefaultEnabled flag
+         */
+        public static isPreventDefaultEnabled:boolean = Util.isiOS || /Android *(4|3)\..*/.test(Util.ua);
 
-        public static initUtil():void {
-            if (typeof global.performance === "undefined") {
-                global.performance = {};
+        public static forceSettingForAndroid(lwfSettings:LwfSettings, renderer:string) {
+            /** force to disable use3D on Android devices */
+            lwfSettings.use3D = false;
+
+            if (lwfSettings.worker) {
+                lwfSettings.worker = Util.useWebWorker;
             }
-            global.performance.now = global.performance.now ||
-                global.performance.webkitNow ||
-                global.performance.mozNow ||
-                global.performance.oNow ||
-                global.performance.msNow ||
-                Date.now;
 
-            global.requestAnimationFrame = global.requestAnimationFrame ||
-                global.webkitRequestAnimationFrame ||
-                global.mozRequestAnimationFrame ||
-                global.oRequestAnimationFrame ||
-                global.msRequestAnimationFrame;
-
-            /** apply poly fills for iOS6 devices */
-            if (global.requestAnimationFrame === void 0 || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
-
-                var vSync = 1000 / 60;
-                var t0 = global.performance.now();
-
-                global.requestAnimationFrame = function (callback:any) {
-
-                    var t1 = global.performance.now();
-                    var duration = t1 - t0;
-                    var d = vSync - ((duration > vSync) ? duration % vSync : duration);
-
-                    return setTimeout(function () {
-                        t0 = global.performance.now();
-                        callback();
-                    }, d);
-                };
+            /** handle buggy css behaviour in certain devices */
+            if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) &&
+                renderer === RendererSelector.webkitCSSRenderer) {
+                lwfSettings.quirkyClearRect = true;
             }
         }
+
+        /**
+         * tune opacity for SH devices using Android 2.3.5-2.3.7 with WebkitCSS Renderer
+         *
+         * @param renderer
+         * @returns {*}
+         */
+        public static getOpacity(renderer:string):string {
+            if (renderer === RendererSelector.webkitCSSRenderer &&
+                /Android 2\.3\.[5-7]/.test(Util.ua) &&
+                /SH/.test(Util.ua)) {
+                return "0.9999";
+            }
+
+            return null;
+        }
+
+        /**
+         * fix innerWidth for old Android devices
+         */
+        public static getStageWidth() {
+            if (global.innerWidth > global.screen.width) {
+                return global.screen.width;
+            }
+
+            return global.innerWidth;
+        }
+
+        /**
+         * fix innerHeight for old Android devices
+         */
+        public static getStageHeight() {
+            if (global.innerHeight > global.screen.height) {
+                return global.screen.height;
+            }
+
+            return global.innerHeight;
+        }
+    }
+
+    /**
+     * "window.performance.now()" cross browser polyfills
+     */
+    if (typeof global.performance === "undefined") {
+        global.performance = {};
+    }
+
+    global.performance.now = global.performance.now ||
+        global.performance.webkitNow ||
+        global.performance.mozNow ||
+        global.performance.oNow ||
+        global.performance.msNow ||
+        Date.now;
+
+    /**
+     * "window.requestAnimationFrame()" cross browser polyfills
+     */
+    global.requestAnimationFrame = global.requestAnimationFrame ||
+        global.webkitRequestAnimationFrame ||
+        global.mozRequestAnimationFrame ||
+        global.oRequestAnimationFrame ||
+        global.msRequestAnimationFrame;
+
+    if (global.requestAnimationFrame === void 0 || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
+        var vSync = 1000 / 60;
+        var from = global.performance.now();
+        global.requestAnimationFrame = function (callback:Function) {
+            var time = global.performance.now();
+            var duration = time - from;
+            var delay = vSync - ((duration > vSync) ? duration % vSync : duration);
+            return setTimeout(function () {
+                from = global.performance.now();
+                callback();
+            }, delay);
+        };
+    }
+
+    /**
+     * handle special behaviour of touch event on certain devices
+     */
+    if (Util.isAndroid && (Util.isChrome || / SC-0/.test(Util.ua))) {
+        document.body.addEventListener("touchstart", function () {
+        });
     }
 }

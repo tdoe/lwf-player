@@ -1,4 +1,16 @@
 /// <reference path="../src/lib/lwf.d.ts" />
+declare module LwfPlayer {
+    class RendererSelector {
+        static webkitCSSRenderer: string;
+        static webGLRenderer: string;
+        static canvasRenderer: string;
+        private renderer;
+        constructor();
+        public getRenderer(): string;
+        public setRenderer(rendererName: string): void;
+        private autoSelectRenderer();
+    }
+}
 declare var global: any;
 declare module LwfPlayer {
     class Util {
@@ -9,25 +21,14 @@ declare module LwfPlayer {
         static isChrome: boolean;
         static isTouchEventEnabled: boolean;
         static useWebWorker: boolean;
-        static debugInfoElementId: number;
-        static initUtil(): void;
+        static isPreventDefaultEnabled: boolean;
+        static forceSettingForAndroid(lwfSettings: LwfSettings, renderer: string): void;
+        static getOpacity(renderer: string): string;
+        static getStageWidth(): any;
+        static getStageHeight(): any;
     }
 }
-declare module LwfPlayer {
-    class RendererSelector {
-        static webkitCSSRenderer: string;
-        static webGLRenderer: string;
-        static canvasRenderer: string;
-        static rendererWebkitCSS: string;
-        static rendererWebGL: string;
-        static rendererCanvas: string;
-        private renderer;
-        constructor();
-        public getRenderer(): string;
-        public setRenderer(rendererName: string): void;
-        private autoSelectRenderer();
-    }
-}
+declare var global: any;
 declare module LwfPlayer {
     class StageContractor {
         private player;
@@ -40,6 +41,10 @@ declare module LwfPlayer {
         private from;
         private currentFPS;
         private execCount;
+        private stageWidth;
+        private stageHeight;
+        private stageStyleWidth;
+        private stageStyleHeight;
         constructor(player: Player);
         public getDevicePixelRatio(): number;
         public getStageScale(): number;
@@ -47,9 +52,14 @@ declare module LwfPlayer {
         public getScreenStageWidth(): number;
         public getScreenStageHeight(): number;
         public changeStageSize(width: number, height: number): void;
-        public removeEventListeners(): void;
+        private fitForWidth(lwfWidth, lwfHeight);
+        private fitForHeight(lwfWidth, lwfHeight);
+        private fitToScreen(lwfWidth, lwfHeight);
+        private setStageWidthAndHeight();
         public addEventListeners(): void;
+        public removeEventListeners(): void;
         public createScreenStage(rendererSelector: RendererSelector): void;
+        public createEventReceiveStage(): void;
         public viewDebugInfo(): void;
     }
 }
@@ -62,9 +72,17 @@ declare module LwfPlayer {
         private isPreventDefaultEnabled;
         constructor(stageContractor: StageContractor);
         public setIsPreventDefaultEnabled(isPreventDefaultEnabled: boolean): void;
-        public getInputPoint(event: any): Coordinator;
+        public setCoordinate(event: any): void;
         public getX(): number;
         public getY(): number;
+    }
+}
+declare var global: any;
+declare module LwfPlayer {
+    class LwfLoader {
+        static getLwfPath(lwfName: string): string;
+        static setLoader(player: Player, lwfSettings: LwfSettings): void;
+        static prepareChildLwfSettings(lwf: LWF.LWF, lwfName: string, imageMap: any, privateData: Object, lwfSetting: LwfSettings): LwfSettings;
     }
 }
 declare module LwfPlayer {
@@ -109,9 +127,8 @@ declare module LwfPlayer {
         public useVertexColor: boolean;
         public worker: boolean;
         public prepareLwfSettings(player: Player, lwfSettings: LwfSettings): void;
-        public prepareChildLwfSettings(lwf: LWF.LWF, lwfName: string, imageMap: any, privateData: Object): LwfSettings;
-        private getImageMapper(imageMap);
-        private getLwfPath(lwfName);
+        static getImageMapper(imageMap: any): Function;
+        public getLwfPath(lwfName: string): any;
     }
 }
 declare module LwfPlayer {
@@ -132,8 +149,7 @@ declare module LwfPlayer {
         private coordinator;
         private rendererSelector;
         private inputQueue;
-        private requests;
-        private from;
+        private fromTime;
         private pausing;
         private destroyed;
         constructor(playerSettings: PlayerSettings, lwfSettings: LwfSettings);
