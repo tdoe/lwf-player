@@ -2,9 +2,6 @@ before_install:
   - nvm install v0.10
   - npm install -g grunt-cli
   
-before_script:
-  - npm install
-
 language: node_js
 node_js:
   - 0.10
