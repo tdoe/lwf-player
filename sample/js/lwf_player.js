@@ -183,6 +183,10 @@ var LwfPlayer;
             if (this.player.getRendererSelector().getRenderer() === LwfPlayer.RendererSelector.webGLRenderer && / F-/.test(LwfPlayer.Util.ua)) {
                 this.devicePixelRatio = 2;
             }
+
+            if (this.devicePixelRatio === void 0 || this.devicePixelRatio === null) {
+                this.devicePixelRatio = 1;
+            }
         }
         StageContractor.prototype.getDevicePixelRatio = function () {
             return this.devicePixelRatio;
