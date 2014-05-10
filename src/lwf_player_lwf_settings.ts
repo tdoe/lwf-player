@@ -124,7 +124,7 @@ module LwfPlayer {
          * @return function to replace path by maps
          */
         public static getImageMapper(imageMap:any):Function {
-            if (typeof imageMap == "function") {
+            if (typeof imageMap === "function") {
                 return imageMap;
             }
 

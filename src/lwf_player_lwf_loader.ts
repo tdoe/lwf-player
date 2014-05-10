@@ -58,8 +58,8 @@ module LwfPlayer {
                 }
             }
 
-            if (imageMap !== void 0 || imageMap !== null) {
-                childSettings.imageMap = imageMap;
+            if (imageMap !== void 0 && imageMap !== null) {
+                childSettings.imageMap = LwfSettings.getImageMapper(imageMap);
             } else if (privateData.hasOwnProperty("imageMap")) {
                 childSettings.imageMap = LwfSettings.getImageMapper(privateData["imageMap"]);
             }

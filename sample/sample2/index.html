@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,user-scalable=no,maximum-scale=1.0,minimum-scale=1.0"/>
+</head>
+<body>
+<div id="lwf"></div>
+<script type="text/javascript" src="../js/lwf.js"></script>
+<script type="text/javascript" src="../js/lwf_player.js"></script>
+
+<script type="text/javascript">
+    window.addEventListener('DOMContentLoaded', function () {
+
+        var playerSettings = new LwfPlayer.PlayerSettings();
+        playerSettings.targetStage = document.getElementById('lwf');
+        playerSettings.debug = true;
+
+        var lwfSettings = new LwfPlayer.LwfSettings();
+        lwfSettings.lwf = "parent_lwf/neko.lwf"; // require LWF file path.
+        lwfSettings.imageMap = {
+            "parent.png":"parent_img/parent.png",
+            "child.png":"child_img/child.png"
+        };
+        lwfSettings.lwfMap = {
+            nekochild: "child_lwf/nekochild.lwf"
+        };
+        lwfSettings.handler = {
+            loadError: function (e) {
+                alert("エラーだよ (・ω<)");
+            },
+            exception: function (e) {
+                alert("例外だよ (・ω<)");
+            }
+        };
+
+        var player = new LwfPlayer.Player(playerSettings, lwfSettings);
+        player.play();
+
+    });
+</script>
+</body>
+</html>

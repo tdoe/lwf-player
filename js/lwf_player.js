@@ -435,8 +435,8 @@ var LwfPlayer;
                 }
             }
 
-            if (imageMap !== void 0 || imageMap !== null) {
-                childSettings.imageMap = imageMap;
+            if (imageMap !== void 0 && imageMap !== null) {
+                childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(imageMap);
             } else if (privateData.hasOwnProperty("imageMap")) {
                 childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(privateData["imageMap"]);
             }
@@ -494,7 +494,7 @@ var LwfPlayer;
         };
 
         LwfSettings.getImageMapper = function (imageMap) {
-            if (typeof imageMap == "function") {
+            if (typeof imageMap === "function") {
                 return imageMap;
             }
 
