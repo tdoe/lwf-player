@@ -1,3 +1,5 @@
+master : [![Build Status](https://travis-ci.org/tdoe/lwf-player.svg?branch=master)](https://travis-ci.org/tdoe/lwf-player)
+
 ## lwf-player
 easy code and easy than [lwf-loader](https://github.com/gree/lwf-loader).
 
