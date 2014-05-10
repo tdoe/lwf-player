@@ -3,11 +3,11 @@
  */
 
 module.exports = function (grunt) {
-    var packages = grunt.file.readJSON('package.json');
+    var packages = grunt.file.readJSON("package.json");
     grunt.initConfig({
             watch: {
-                files: ['src/*.ts'],
-                tasks: ['tslint', 'typescript:dev']
+                files: ["src/*.ts"],
+                tasks: ["tslint", "typescript:dev"]
             },
             tslint: {
                 options: {
@@ -15,32 +15,48 @@ module.exports = function (grunt) {
                     formatter: "prose"
                 },
                 files: {
-                    src: ['src/**/*.ts']
+                    src: ["src/**/*.ts"]
                 }
             },
             typescript: {
                 base: {
-                    src: ['src/**/*.ts'],
-                    dest: 'js/lwf_player.js',
+                    src: ["src/**/*.ts"],
+                    dest: "js/lwf_player.js",
                     options: {
-                        target: 'es5',
-                        basePath: 'src',
+                        target: "es5",
+                        basePath: "src",
                         sourceMap: true,
                         declaration: true
                     }
                 },
                 dev: {
-                    src: ['src/**/*.ts'],
-                    dest: 'sample/js/lwf_player.js',
+                    src: ["src/**/*.ts"],
+                    dest: "sample/js/lwf_player.js",
                     options: {
-                        target: 'es5'
+                        target: "es5"
                     }
                 }
             },
             uglify: {
                 minify: {
                     files: {
-                        "js/lwf_player.min.js": ['js/lwf_player.js']
+                        "js/lwf_player.min.js": ["js/lwf_player.js"]
+                    }
+                }
+            },
+            jasmine: {
+                all: {
+                    src: "js/lwf_player.js",
+                    options: {
+                        specs: "spec/*Spec.js",
+                        vendor: [
+                            "sample/js/lwf.js"
+                        ],
+                        keepRunner: true,
+                        outfile:"build/_SpecRunner.html",
+                        junit: {
+                            path: 'build/jasmine-test/'
+                        }
                     }
                 }
             }
@@ -53,7 +69,8 @@ module.exports = function (grunt) {
         }
     }
 
-    grunt.registerTask('build', [ 'tslint', 'typescript:base', 'uglify:minify' ]);
-    grunt.registerTask('default', [ 'watch' ]);
+    grunt.registerTask("build", [ "tslint", "typescript:base", "uglify:minify" ]);
+    grunt.registerTask("default", [ "watch" ]);
+    grunt.registerTask("test", [ "jasmine" ]);
 }
 ;
