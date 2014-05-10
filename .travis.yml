@@ -1,5 +1,8 @@
+before_script:
+  - npm install
+
 language: node_js
 node_js:
   - 0.10.22
 script:
-  - grunt test
+  - "grunt test"
