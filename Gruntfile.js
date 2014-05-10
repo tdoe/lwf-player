@@ -53,10 +53,32 @@ module.exports = function (grunt) {
                             "sample/js/lwf.js"
                         ],
                         keepRunner: true,
-                        outfile:"build/_SpecRunner.html",
-                        junit: {
-                            path: 'build/jasmine-test/'
-                        }
+                        outfile: "build/SpecRunner.html",
+                        helpers: 'spec/helper/helper.js'
+                    }
+                },
+                iOS: {
+                    src: "js/lwf_player.js",
+                    options: {
+                        specs: "spec/lwfUtil/iOS_lwfUtilSpec.js",
+                        vendor: [
+                            "sample/js/lwf.js"
+                        ],
+                        keepRunner: true,
+                        outfile: "build/iOS_SpecRunner.html",
+                        helpers: 'spec/helper/iOSHelper.js'
+                    }
+                },
+                Android: {
+                    src: "js/lwf_player.js",
+                    options: {
+                        specs: "spec/lwfUtil/android_lwfUtilSpec.js",
+                        vendor: [
+                            "sample/js/lwf.js"
+                        ],
+                        keepRunner: true,
+                        outfile: "build/android_SpecRunner.html",
+                        helpers: 'spec/helper/androidHelper.js'
                     }
                 }
             }
@@ -69,8 +91,11 @@ module.exports = function (grunt) {
         }
     }
 
-    grunt.registerTask("build", [ "tslint", "typescript:base", "uglify:minify" ]);
     grunt.registerTask("default", [ "watch" ]);
-    grunt.registerTask("test", [ "jasmine" ]);
+    grunt.registerTask("build", [ "tslint", "typescript:base", "jasmine", "uglify:minify" ]);
+
+    grunt.registerTask("test", [ "typescript:base", "jasmine"]);
+    grunt.registerTask("iOS_test", [ "typescript:base", "jasmine:iOS" ]);
+    grunt.registerTask("Android_test", [ "typescript:base", "jasmine:Android" ]);
 }
 ;

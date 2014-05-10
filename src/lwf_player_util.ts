@@ -17,7 +17,7 @@ module LwfPlayer {
         /**
          * current useragent
          */
-        public static ua = navigator.userAgent;
+        public static ua = global.navigator.userAgent;
 
         /**
          * Whether currently running on iOS

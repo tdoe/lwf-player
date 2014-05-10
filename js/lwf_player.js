@@ -99,7 +99,7 @@ var LwfPlayer;
 
             return global.innerHeight;
         };
-        Util.ua = navigator.userAgent;
+        Util.ua = global.navigator.userAgent;
 
         Util.isiOS = /iP(ad|hone|od)/.test(Util.ua);
 

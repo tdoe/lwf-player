@@ -14,7 +14,7 @@ declare module LwfPlayer {
 declare var global: any;
 declare module LwfPlayer {
     class Util {
-        static ua: string;
+        static ua: any;
         static isiOS: boolean;
         static isAndroid: boolean;
         static isSp: boolean;
