@@ -1,5 +1,7 @@
-before_script:
+before_install:
   - nvm install v0.10.22
+  
+before_script:
   - npm install
 
 language: node_js
