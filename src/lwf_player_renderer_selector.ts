@@ -64,6 +64,7 @@ module LwfPlayer {
             for (var i = 0; i < contextNames.length; i++) {
                 if (canvas.getContext(contextNames[i])) {
                     this.renderer = RendererSelector.webGLRenderer;
+                    break;
                 }
             }
 
