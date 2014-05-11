@@ -7,7 +7,7 @@ declare module LwfPlayer {
         private renderer;
         constructor();
         public getRenderer(): string;
-        public setRenderer(rendererName: string): void;
+        public setRenderer(playerSettings: PlayerSettings): void;
         private autoSelectRenderer();
     }
 }
@@ -26,6 +26,8 @@ declare module LwfPlayer {
         static getOpacity(renderer: string): string;
         static getStageWidth(): any;
         static getStageHeight(): any;
+        static isEmpty(arg: any): boolean;
+        static isNotEmpty(arg: any): boolean;
     }
 }
 declare var global: any;
@@ -126,7 +128,9 @@ declare module LwfPlayer {
         public useBackgroundColor: boolean;
         public useVertexColor: boolean;
         public worker: boolean;
-        public prepareLwfSettings(player: Player, lwfSettings: LwfSettings): void;
+        public validationLwfSettings(): void;
+        public initPos(): void;
+        public prepareLwfSettings(player: Player): void;
         static getImageMapper(imageMap: any): Function;
         public getLwfPath(lwfName: string): any;
     }
@@ -136,6 +140,7 @@ declare module LwfPlayer {
         public renderer: string;
         public debug: boolean;
         public targetStage: HTMLElement;
+        public validationPlayerSettings(): void;
     }
 }
 declare var global: any;
@@ -153,6 +158,7 @@ declare module LwfPlayer {
         private pausing;
         private destroyed;
         constructor(playerSettings: PlayerSettings, lwfSettings: LwfSettings);
+        private initStage();
         public play(): void;
         public pause(): void;
         public resume(): void;
@@ -162,7 +168,6 @@ declare module LwfPlayer {
         public getLwfSettings(): LwfSettings;
         public getRendererSelector(): RendererSelector;
         public getStageContractor(): StageContractor;
-        private loadLWF(lwf, lwfName, imageMap, privateData, callback);
         private handleLoadError();
         private handleException(exception);
         private exec();
@@ -174,6 +179,8 @@ declare module LwfPlayer {
         public onMove(e: Event): void;
         public onPress(e: Event): void;
         public onRelease(e: Event): void;
+        public onLoad(lwf: LWF.LWF): void;
         private restraint();
+        private loadLWF(lwf, lwfName, imageMap, privateData, callback);
     }
 }

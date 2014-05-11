@@ -30,7 +30,9 @@ describe("RendererSelector class test", function () {
     });
 
     it("test setRenderer", function () {
-        rendererSelector.setRenderer(LwfPlayer.RendererSelector.webkitCSSRenderer);
+        var playerSetting = new LwfPlayer.PlayerSettings();
+        playerSetting.renderer = LwfPlayer.RendererSelector.webkitCSSRenderer;
+        rendererSelector.setRenderer(playerSetting);
 
         if (enableWebGL) {
             expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererSelector.webGLRenderer);

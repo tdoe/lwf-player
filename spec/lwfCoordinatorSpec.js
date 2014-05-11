@@ -13,17 +13,8 @@ describe("Coordinator class test", function () {
 
     var player = new LwfPlayer.Player(playerSettings, lwfSettings);
 
-    var coordinator = player.getCoordinator();
-
     beforeEach(function () {
-    });
-
-    it("test getX", function () {
-        expect(coordinator.getX()).toEqual(0);
-    });
-
-    it("test getY", function () {
-        expect(coordinator.getY()).toEqual(0);
+        player.play();
     });
 
     it("test setCoordinate", function () {
@@ -32,6 +23,7 @@ describe("Coordinator class test", function () {
             clientX: 100,
             clientY: 100
         };
+        var coordinator = player.getCoordinator();
         coordinator.setCoordinate(event);
         expect(coordinator.getX()).toEqual(100);
         expect(coordinator.getY()).toEqual(100);

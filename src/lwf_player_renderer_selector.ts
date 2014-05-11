@@ -37,18 +37,24 @@ module LwfPlayer {
          * can use it only three types.
          * auto-select the optimal renderer set after.
          *
-         * @param rendererName
+         * @param playerSettings
          */
-        public setRenderer(rendererName:string):void {
-            switch (rendererName) {
+        public setRenderer(playerSettings:PlayerSettings):void {
+            if (Util.isEmpty(playerSettings.renderer)) {
+                this.autoSelectRenderer();
+                return;
+            }
+
+            switch (playerSettings.renderer) {
                 case RendererSelector.canvasRenderer:
                 case RendererSelector.webkitCSSRenderer:
                 case RendererSelector.webGLRenderer:
-                    this.renderer = rendererName;
+                    this.renderer = playerSettings.renderer;
                     break;
                 default :
-                    throw new Error("unsupported renderer:" + rendererName);
+                    throw new Error("unsupported renderer:" + playerSettings.renderer);
             }
+
             this.autoSelectRenderer();
         }
 
@@ -84,7 +90,7 @@ module LwfPlayer {
                 }
             }
 
-            if (this.renderer === void 0 || this.renderer === null) {
+            if (Util.isEmpty(this.renderer)) {
                 this.renderer = RendererSelector.canvasRenderer;
             }
         }

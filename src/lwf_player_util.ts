@@ -106,12 +106,48 @@ module LwfPlayer {
 
             return global.innerHeight;
         }
+
+        /**
+         * if null or undefined or empty object is return true.
+         *
+         * @param arg
+         *
+         * @returns {boolean}
+         */
+        public static isEmpty(arg:any):boolean {
+            if (arg === void 0 || arg === null) {
+                return true;
+            }
+
+            if (arg instanceof String || arg instanceof Array) {
+                return arg.length === 0;
+            }
+
+            for (var i in arg) {
+                if (arg.hasOwnProperty(i)) {
+                    return false;
+                }
+            }
+
+            return !(arg instanceof Boolean);
+        }
+
+        /**
+         * @see Util.isEmpty
+         *
+         * @param arg
+         *
+         * @returns {boolean}
+         */
+        public static isNotEmpty(arg) {
+            return !Util.isEmpty(arg);
+        }
     }
 
     /**
      * "window.performance.now()" cross browser polyfills
      */
-    if (typeof global.performance === "undefined") {
+    if (Util.isEmpty(global.performance)) {
         global.performance = {};
     }
 
@@ -131,7 +167,7 @@ module LwfPlayer {
         global.oRequestAnimationFrame ||
         global.msRequestAnimationFrame;
 
-    if (global.requestAnimationFrame === void 0 || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
+    if (Util.isEmpty(global.requestAnimationFrame) || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
         var vSync = 1000 / 60;
         var from = global.performance.now();
         global.requestAnimationFrame = function (callback:Function) {

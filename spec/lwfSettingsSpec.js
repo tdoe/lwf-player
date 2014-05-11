@@ -87,12 +87,11 @@ describe("LwfSetting class test", function () {
         var _playerSetting = new LwfPlayer.PlayerSettings();
         _playerSetting.targetStage = document.createElement("div");
 
-        var _lwfSetting = new LwfPlayer.LwfSettings();
-        _lwfSetting.lwf = "hoge.lwf";
+        lwfSetting.lwf = "hoge.lwf";
 
         var player = new LwfPlayer.Player(_playerSetting, lwfSetting);
-
-        lwfSetting.prepareLwfSettings(player, _lwfSetting);
+        player.initStage();
+        lwfSetting.prepareLwfSettings(player);
 
         expect(lwfSetting.privateData).toBeDefined();
         expect(lwfSetting.useBackgroundColor).toBe(true);

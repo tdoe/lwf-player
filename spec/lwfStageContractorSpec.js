@@ -13,6 +13,7 @@ describe("StageContractor class test", function () {
     lwfSettings.fitForWidth = true;
 
     var player = new LwfPlayer.Player(playerSettings, lwfSettings);
+    player.initStage();
 
     var stageContractor = player.getStageContractor();
 

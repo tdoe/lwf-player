@@ -39,12 +39,9 @@ module LwfPlayer {
             this.player = player;
 
             this.targetStage = this.player.getPlayerSettings().targetStage;
-            if (this.targetStage === void 0 || this.targetStage === null) {
-                throw new Error("not setting target stage.");
-            }
 
             // prepare LWF stage
-            if (this.targetStage.style.position === "static" || this.targetStage.style.position === "") {
+            if (this.targetStage.style.position === "static" || Util.isEmpty(this.targetStage.style.position)) {
                 this.targetStage.style.position = "relative";
             }
 
@@ -57,7 +54,7 @@ module LwfPlayer {
                 this.devicePixelRatio = 2;
             }
 
-            if (this.devicePixelRatio === void 0 || this.devicePixelRatio === null) {
+            if (Util.isEmpty(this.devicePixelRatio)) {
                 this.devicePixelRatio = 1;
             }
         }
@@ -248,6 +245,10 @@ module LwfPlayer {
             }
 
             var pos = this.player.getLwfSettings().pos;
+            if (Util.isEmpty(pos)) {
+                this.player.getLwfSettings().initPos();
+                pos = this.player.getLwfSettings().pos;
+            }
 
             this.screenStage.style.position = pos["position"];
             this.screenStage.style.top = pos["top"] + "px";
@@ -276,7 +277,7 @@ module LwfPlayer {
          * Display debug information.
          */
         public viewDebugInfo():void {
-            if (this.debugInfo === null) {
+            if (Util.isEmpty(this.debugInfo)) {
                 this.debugInfo = document.createElement("div");
                 this.debugInfo.style.position = "absolute";
                 this.debugInfo.style.top = "0px";

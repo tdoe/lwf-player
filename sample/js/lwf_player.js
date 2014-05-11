@@ -10,16 +10,22 @@ var LwfPlayer;
             return this.renderer;
         };
 
-        RendererSelector.prototype.setRenderer = function (rendererName) {
-            switch (rendererName) {
+        RendererSelector.prototype.setRenderer = function (playerSettings) {
+            if (LwfPlayer.Util.isEmpty(playerSettings.renderer)) {
+                this.autoSelectRenderer();
+                return;
+            }
+
+            switch (playerSettings.renderer) {
                 case RendererSelector.canvasRenderer:
                 case RendererSelector.webkitCSSRenderer:
                 case RendererSelector.webGLRenderer:
-                    this.renderer = rendererName;
+                    this.renderer = playerSettings.renderer;
                     break;
                 default:
-                    throw new Error("unsupported renderer:" + rendererName);
+                    throw new Error("unsupported renderer:" + playerSettings.renderer);
             }
+
             this.autoSelectRenderer();
         };
 
@@ -46,7 +52,7 @@ var LwfPlayer;
                 }
             }
 
-            if (this.renderer === void 0 || this.renderer === null) {
+            if (LwfPlayer.Util.isEmpty(this.renderer)) {
                 this.renderer = RendererSelector.canvasRenderer;
             }
         };
@@ -100,6 +106,28 @@ var LwfPlayer;
 
             return global.innerHeight;
         };
+
+        Util.isEmpty = function (arg) {
+            if (arg === void 0 || arg === null) {
+                return true;
+            }
+
+            if (arg instanceof String || arg instanceof Array) {
+                return arg.length === 0;
+            }
+
+            for (var i in arg) {
+                if (arg.hasOwnProperty(i)) {
+                    return false;
+                }
+            }
+
+            return !(arg instanceof Boolean);
+        };
+
+        Util.isNotEmpty = function (arg) {
+            return !Util.isEmpty(arg);
+        };
         Util.ua = global.navigator.userAgent;
 
         Util.isiOS = /iP(ad|hone|od)/.test(Util.ua);
@@ -119,7 +147,7 @@ var LwfPlayer;
     })();
     LwfPlayer.Util = Util;
 
-    if (typeof global.performance === "undefined") {
+    if (Util.isEmpty(global.performance)) {
         global.performance = {};
     }
 
@@ -127,7 +155,7 @@ var LwfPlayer;
 
     global.requestAnimationFrame = global.requestAnimationFrame || global.webkitRequestAnimationFrame || global.mozRequestAnimationFrame || global.oRequestAnimationFrame || global.msRequestAnimationFrame;
 
-    if (global.requestAnimationFrame === void 0 || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
+    if (Util.isEmpty(global.requestAnimationFrame) || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
         var vSync = 1000 / 60;
         var from = global.performance.now();
         global.requestAnimationFrame = function (callback) {
@@ -169,11 +197,8 @@ var LwfPlayer;
             this.player = player;
 
             this.targetStage = this.player.getPlayerSettings().targetStage;
-            if (this.targetStage === void 0 || this.targetStage === null) {
-                throw new Error("not setting target stage.");
-            }
 
-            if (this.targetStage.style.position === "static" || this.targetStage.style.position === "") {
+            if (this.targetStage.style.position === "static" || LwfPlayer.Util.isEmpty(this.targetStage.style.position)) {
                 this.targetStage.style.position = "relative";
             }
 
@@ -185,7 +210,7 @@ var LwfPlayer;
                 this.devicePixelRatio = 2;
             }
 
-            if (this.devicePixelRatio === void 0 || this.devicePixelRatio === null) {
+            if (LwfPlayer.Util.isEmpty(this.devicePixelRatio)) {
                 this.devicePixelRatio = 1;
             }
         }
@@ -306,6 +331,10 @@ var LwfPlayer;
             }
 
             var pos = this.player.getLwfSettings().pos;
+            if (LwfPlayer.Util.isEmpty(pos)) {
+                this.player.getLwfSettings().initPos();
+                pos = this.player.getLwfSettings().pos;
+            }
 
             this.screenStage.style.position = pos["position"];
             this.screenStage.style.top = pos["top"] + "px";
@@ -328,7 +357,7 @@ var LwfPlayer;
         };
 
         StageContractor.prototype.viewDebugInfo = function () {
-            if (this.debugInfo === null) {
+            if (LwfPlayer.Util.isEmpty(this.debugInfo)) {
                 this.debugInfo = document.createElement("div");
                 this.debugInfo.style.position = "absolute";
                 this.debugInfo.style.top = "0px";
@@ -440,13 +469,13 @@ var LwfPlayer;
                 }
             }
 
-            if (imageMap !== void 0 && imageMap !== null) {
+            if (LwfPlayer.Util.isNotEmpty(imageMap)) {
                 childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(imageMap);
             } else if (privateData.hasOwnProperty("imageMap")) {
                 childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(privateData["imageMap"]);
             }
 
-            if (privateData !== void 0 && privateData !== null) {
+            if (LwfPlayer.Util.isNotEmpty(privateData)) {
                 childSettings.privateData = privateData;
             }
 
@@ -470,40 +499,43 @@ var LwfPlayer;
     var LwfSettings = (function () {
         function LwfSettings() {
         }
-        LwfSettings.prototype.prepareLwfSettings = function (player, lwfSettings) {
-            for (var i in lwfSettings) {
-                if (lwfSettings.hasOwnProperty(i)) {
-                    this[i] = lwfSettings[i];
-                }
+        LwfSettings.prototype.validationLwfSettings = function () {
+            if (LwfPlayer.Util.isEmpty(this.lwf)) {
+                throw new Error("lwf property is require.");
             }
+        };
 
-            if (this.privateData === void 0) {
+        LwfSettings.prototype.initPos = function () {
+            this.pos = {
+                "position": "absolute",
+                "top": 0,
+                "left": 0
+            };
+        };
+
+        LwfSettings.prototype.prepareLwfSettings = function (player) {
+            if (LwfPlayer.Util.isEmpty(this.privateData)) {
                 this.privateData = {};
             }
 
-            if (this.useBackgroundColor === void 0) {
+            if (LwfPlayer.Util.isEmpty(this.useBackgroundColor)) {
                 this.useBackgroundColor = true;
             }
 
-            if (this.pos === void 0) {
-                this.pos = {
-                    "position": "absolute",
-                    "top": 0,
-                    "left": 0
-                };
-            }
-
+            this.stage = player.getStageContractor().getScreenStage();
             this.imageMap = LwfSettings.getImageMapper(this.imageMap);
 
             if (LwfPlayer.Util.isAndroid) {
                 LwfPlayer.Util.forceSettingForAndroid(this, player.getRendererSelector().getRenderer());
             }
 
+            this.onload = player.onLoad;
+
             LwfPlayer.LwfLoader.setLoader(player, this);
         };
 
         LwfSettings.getImageMapper = function (imageMap) {
-            if (typeof imageMap === "function") {
+            if (imageMap instanceof Function) {
                 return imageMap;
             }
 
@@ -516,8 +548,8 @@ var LwfPlayer;
         };
 
         LwfSettings.prototype.getLwfPath = function (lwfName) {
-            if (this.lwfMap !== void 0) {
-                if (typeof this.lwfMap === "function") {
+            if (LwfPlayer.Util.isNotEmpty(this.lwfMap)) {
+                if (this.lwfMap instanceof Function) {
                     return this.lwfMap(lwfName);
                 }
 
@@ -540,6 +572,11 @@ var LwfPlayer;
     var PlayerSettings = (function () {
         function PlayerSettings() {
         }
+        PlayerSettings.prototype.validationPlayerSettings = function () {
+            if (LwfPlayer.Util.isEmpty(this.targetStage)) {
+                throw new Error("targetStage property is need HTMLElement");
+            }
+        };
         return PlayerSettings;
     })();
     LwfPlayer.PlayerSettings = PlayerSettings;
@@ -562,37 +599,33 @@ var LwfPlayer;
             this.fromTime = global.performance.now();
             this.pausing = false;
             this.destroyed = false;
-            if ((playerSettings === void 0 || playerSettings === null) || (lwfSettings === void 0 || lwfSettings === null)) {
+            if (LwfPlayer.Util.isEmpty(playerSettings) || LwfPlayer.Util.isEmpty(lwfSettings)) {
                 throw new Error("not enough argument.");
             }
 
             this.playerSettings = playerSettings;
-            this.lwfSettings.prepareLwfSettings(this, lwfSettings);
+            this.playerSettings.validationPlayerSettings();
 
-            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
-                this.rendererSelector.setRenderer(this.playerSettings.renderer);
-            }
+            this.lwfSettings = lwfSettings;
+            this.lwfSettings.validationLwfSettings();
 
+            this.rendererSelector.setRenderer(this.playerSettings);
+        }
+        Player.prototype.initStage = function () {
             this.stageContractor = new LwfPlayer.StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
             this.stageContractor.createEventReceiveStage();
-            this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
-            this.lwfSettings.stage = this.stageContractor.getScreenStage();
-
-            this.restraint();
-            this.initLwf();
-        }
-        Player.prototype.play = function () {
-            var _this = this;
             this.stageContractor.addEventListeners();
-            this.lwfSettings.onload = function (_lwf) {
-                if (_lwf !== null) {
-                    _this.lwf = _lwf;
-                    _this.exec();
-                } else {
-                    _this.handleLoadError();
-                }
-            };
+            this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
+        };
+
+        Player.prototype.play = function () {
+            this.restraint();
+            this.initStage();
+            this.initLwf();
+
+            this.lwfSettings.prepareLwfSettings(this);
+
             this.cache.loadLWF(this.lwfSettings);
         };
 
@@ -628,29 +661,15 @@ var LwfPlayer;
             return this.stageContractor;
         };
 
-        Player.prototype.loadLWF = function (lwf, lwfName, imageMap, privateData, callback) {
-            var childSettings = LwfPlayer.LwfLoader.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData, this.lwfSettings);
-            var _this = this;
-            childSettings.onload = function (childLwf) {
-                if (!childLwf) {
-                    _this.handleLoadError();
-                    return callback(childSettings["error"], childLwf);
-                }
-                return callback(null, childLwf);
-            };
-
-            this.cache.loadLWF(childSettings);
-        };
-
         Player.prototype.handleLoadError = function () {
-            if (this.lwfSettings.handler && typeof this.lwfSettings.handler["loadError"] === "function") {
+            if (this.lwfSettings.handler && this.lwfSettings.handler["loadError"] instanceof Function) {
                 this.lwfSettings.handler["loadError"](this.lwfSettings.error);
             }
             console.error("[LWF] load error: %o", this.lwfSettings.error);
         };
 
         Player.prototype.handleException = function (exception) {
-            if (this.lwfSettings.handler && typeof this.lwfSettings.handler["exception"] === "function") {
+            if (this.lwfSettings.handler && this.lwfSettings.handler["exception"] instanceof Function) {
                 this.lwfSettings.handler["exception"](exception);
             }
             console.error("[LWF] load Exception: %o", exception);
@@ -663,7 +682,7 @@ var LwfPlayer;
                     this.destroyLwf();
                     return;
                 }
-                if (this.lwf !== null && !this.pausing) {
+                if (LwfPlayer.Util.isNotEmpty(this.lwf) && !this.pausing) {
                     for (var i = 0; i < this.inputQueue.length; i++) {
                         this.inputQueue[i].apply(this);
                     }
@@ -733,7 +752,7 @@ var LwfPlayer;
         };
 
         Player.prototype.destroyLwf = function () {
-            if (this.lwf !== null) {
+            if (LwfPlayer.Util.isNotEmpty(this.lwf)) {
                 this.stageContractor.removeEventListeners();
                 this.lwf.destroy();
                 this.cache = null;
@@ -772,6 +791,15 @@ var LwfPlayer;
             });
         };
 
+        Player.prototype.onLoad = function (lwf) {
+            if (LwfPlayer.Util.isNotEmpty(lwf)) {
+                this.lwf = lwf;
+                this.exec();
+            } else {
+                this.handleLoadError();
+            }
+        };
+
         Player.prototype.restraint = function () {
             var __bind = function (fn, me) {
                 return function () {
@@ -782,6 +810,21 @@ var LwfPlayer;
             this.onRelease = __bind(this.onRelease, this);
             this.onPress = __bind(this.onPress, this);
             this.onMove = __bind(this.onMove, this);
+            this.onLoad = __bind(this.onLoad, this);
+        };
+
+        Player.prototype.loadLWF = function (lwf, lwfName, imageMap, privateData, callback) {
+            var childSettings = LwfPlayer.LwfLoader.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData, this.lwfSettings);
+            var _this = this;
+            childSettings.onload = function (childLwf) {
+                if (LwfPlayer.Util.isEmpty(childLwf)) {
+                    _this.handleLoadError();
+                    return callback(childSettings["error"], childLwf);
+                }
+                return callback(null, childLwf);
+            };
+
+            this.cache.loadLWF(childSettings);
         };
         return Player;
     })();

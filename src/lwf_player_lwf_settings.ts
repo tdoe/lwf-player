@@ -76,40 +76,47 @@ module LwfPlayer {
         public worker:boolean;
 
         /**
+         * validation check this instance.
+         */
+        public validationLwfSettings() {
+            if (Util.isEmpty(this.lwf)) {
+                throw new Error("lwf property is require.");
+            }
+        }
+
+        /**
+         * initialized pos property.
+         */
+        public initPos() {
+            this.pos = {
+                "position": "absolute",
+                "top"     : 0,
+                "left"    : 0
+            };
+        }
+
+        /**
          * require members init.
          *
          * @param player
-         *
-         * @param lwfSettings
          */
-        public prepareLwfSettings(player:Player, lwfSettings:LwfSettings):void {
-            for (var i in lwfSettings) {
-                if (lwfSettings.hasOwnProperty(i)) {
-                    this[i] = lwfSettings[i];
-                }
-            }
-
-            if (this.privateData === void 0) {
+        public prepareLwfSettings(player:Player):void {
+            if (Util.isEmpty(this.privateData)) {
                 this.privateData = {};
             }
 
-            if (this.useBackgroundColor === void 0) {
+            if (Util.isEmpty(this.useBackgroundColor)) {
                 this.useBackgroundColor = true;
             }
 
-            if (this.pos === void 0) {
-                this.pos = {
-                    "position": "absolute",
-                    "top"     : 0,
-                    "left"    : 0
-                };
-            }
-
+            this.stage = player.getStageContractor().getScreenStage();
             this.imageMap = LwfSettings.getImageMapper(this.imageMap);
 
             if (Util.isAndroid) {
                 Util.forceSettingForAndroid(this, player.getRendererSelector().getRenderer());
             }
+
+            this.onload = player.onLoad;
 
             LwfLoader.setLoader(player, this);
         }
@@ -124,7 +131,7 @@ module LwfPlayer {
          * @return function to replace path by maps
          */
         public static getImageMapper(imageMap:any):Function {
-            if (typeof imageMap === "function") {
+            if (imageMap instanceof Function) {
                 return imageMap;
             }
 
@@ -144,8 +151,8 @@ module LwfPlayer {
          * @returns {string|Function} LWF file path.
          */
         public getLwfPath(lwfName:string):any {
-            if (this.lwfMap !== void 0) {
-                if (typeof this.lwfMap === "function") {
+            if (Util.isNotEmpty(this.lwfMap)) {
+                if (this.lwfMap instanceof Function) {
                     return this.lwfMap(lwfName);
                 }
 

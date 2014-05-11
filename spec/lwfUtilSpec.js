@@ -53,4 +53,21 @@ describe("LwfUtil class test", function () {
     it("test getOpacity", function () {
         expect(util.getOpacity("useCanvasRenderer")).toEqual(null);
     });
+
+    it("test isEmpty", function () {
+        var arg = null;
+        expect(util.isEmpty(arg)).toEqual(true);
+
+        arg = undefined;
+        expect(util.isEmpty(arg)).toEqual(true);
+
+        arg = "";
+        expect(util.isEmpty(arg)).toEqual(true);
+
+        arg = [];
+        expect(util.isEmpty(arg)).toEqual(true);
+
+        arg = {};
+        expect(util.isEmpty(arg)).toEqual(true);
+    });
 });

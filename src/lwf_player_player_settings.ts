@@ -12,11 +12,19 @@
  * targetStage
  *  append the LWF animation rendering element.
  */
+    
+    /// <reference path="lwf_player_util.ts"/>
 
 module LwfPlayer {
     export class PlayerSettings {
         public renderer:string;
         public debug:boolean;
         public targetStage:HTMLElement;
+
+        public validationPlayerSettings() {
+            if (Util.isEmpty(this.targetStage)) {
+                throw new Error("targetStage property is need HTMLElement");
+            }
+        }
     }
 }

@@ -46,42 +46,37 @@ module LwfPlayer {
          * @param {LwfPlayer.LwfSettings}    lwfSettings    Require lwf:load LWF path.
          */
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
-            if ((playerSettings === void 0 || playerSettings === null) ||
-                (lwfSettings === void 0 || lwfSettings === null)) {
+            if (Util.isEmpty(playerSettings) || Util.isEmpty(lwfSettings)) {
                 throw new Error("not enough argument.");
             }
 
             this.playerSettings = playerSettings;
-            this.lwfSettings.prepareLwfSettings(this, lwfSettings);
+            this.playerSettings.validationPlayerSettings();
 
-            if (this.playerSettings.renderer !== void 0 && this.playerSettings.renderer !== null) {
-                this.rendererSelector.setRenderer(this.playerSettings.renderer);
-            }
+            this.lwfSettings = lwfSettings;
+            this.lwfSettings.validationLwfSettings();
 
+            this.rendererSelector.setRenderer(this.playerSettings);
+        }
+
+        private initStage() {
             this.stageContractor = new StageContractor(this);
             this.stageContractor.createScreenStage(this.rendererSelector);
             this.stageContractor.createEventReceiveStage();
+            this.stageContractor.addEventListeners();
             this.coordinator = new Coordinator(this.stageContractor);
-            this.lwfSettings.stage = this.stageContractor.getScreenStage();
-
-            this.restraint();
-            this.initLwf();
         }
 
         /**
          * load and play LWF.
          */
         public play():void {
-            var _this = this;
-            this.stageContractor.addEventListeners();
-            this.lwfSettings.onload = function (_lwf:LWF.LWF) {
-                if (_lwf !== null) {
-                    _this.lwf = _lwf;
-                    _this.exec();
-                } else {
-                    _this.handleLoadError();
-                }
-            };
+            this.restraint();
+            this.initStage();
+            this.initLwf();
+
+            this.lwfSettings.prepareLwfSettings(this);
+
             this.cache.loadLWF(this.lwfSettings);
         }
 
@@ -152,41 +147,12 @@ module LwfPlayer {
         }
 
         /**
-         *  called by external LWF.
-         *  Load external LWF resource to attach on current running LWF.
-         *  For backward compatibility lwf-loader.
-         *
-         * @param lwf         parent LWF instance.
-         * @param lwfName     child-LWF ID.
-         * @param imageMap    for child-LWF imageMap object or function.
-         * @param privateData for child-LWF object.
-         * @param callback    callback to return attach LWF instance.
-         *
-         * @see https://github.com/gree/lwf-loader
-         */
-        private loadLWF(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void {
-            var childSettings:LwfSettings =
-                    LwfLoader.prepareChildLwfSettings(
-                        lwf, lwfName, imageMap, privateData, this.lwfSettings);
-            var _this = this;
-            childSettings.onload = function (childLwf:LWF.LWF) {
-                if (!childLwf) {
-                    _this.handleLoadError();
-                    return callback(childSettings["error"], childLwf);
-                }
-                return callback(null, childLwf);
-            };
-
-            this.cache.loadLWF(childSettings);
-        }
-
-        /**
          * handle load error.
          * can run the error handler that was passed.
          * It is recommended to pass handler["loadError"] function.
          */
         private handleLoadError():void {
-            if (this.lwfSettings.handler && typeof this.lwfSettings.handler["loadError"] === "function") {
+            if (this.lwfSettings.handler && this.lwfSettings.handler["loadError"] instanceof Function) {
                 this.lwfSettings.handler["loadError"](this.lwfSettings.error);
             }
             console.error("[LWF] load error: %o", this.lwfSettings.error);
@@ -197,10 +163,10 @@ module LwfPlayer {
          * can run the Exception handler that was passed.
          * It is recommended to pass handler["exception"] function.
          *
-         * @param {any} exception
+         * @param exception
          */
-        private handleException(exception):void {
-            if (this.lwfSettings.handler && typeof this.lwfSettings.handler["exception"] === "function") {
+        private handleException(exception:any):void {
+            if (this.lwfSettings.handler && this.lwfSettings.handler["exception"] instanceof Function) {
                 this.lwfSettings.handler["exception"](exception);
             }
             console.error("[LWF] load Exception: %o", exception);
@@ -217,7 +183,7 @@ module LwfPlayer {
                     this.destroyLwf();
                     return;
                 }
-                if (this.lwf !== null && !this.pausing) {
+                if (Util.isNotEmpty(this.lwf) && !this.pausing) {
                     for (var i = 0; i < this.inputQueue.length; i++) {
                         this.inputQueue[i].apply(this);
                     }
@@ -298,7 +264,7 @@ module LwfPlayer {
          * destroy LWF resource and remove event listener.
          */
         private destroyLwf():void {
-            if (this.lwf !== null) {
+            if (Util.isNotEmpty(this.lwf)) {
                 this.stageContractor.removeEventListeners();
                 this.lwf.destroy();
                 this.cache = null;
@@ -312,7 +278,7 @@ module LwfPlayer {
         /**
          * pass the coordinates to LWF from mouse or touch event.
          *
-         * @param {Event} e
+         * @param e
          */
         private inputPoint(e:Event):void {
             this.coordinator.setCoordinate(e);
@@ -322,7 +288,7 @@ module LwfPlayer {
         /**
          * pass the coordinates and input to LWF from mouse or touch event.
          *
-         * @param {Event} e
+         * @param e
          */
         private inputPress(e:Event):void {
             this.inputPoint(e);
@@ -332,7 +298,7 @@ module LwfPlayer {
         /**
          * push queue the mouse or touch coordinates.
          *
-         * @param {Event} e
+         * @param e
          */
         public onMove(e:Event):void {
             this.inputQueue.push(function () {
@@ -343,7 +309,7 @@ module LwfPlayer {
         /**
          * push queue the press by mouse or touch coordinates.
          *
-         * @param {Event} e
+         * @param e
          */
         public onPress(e:Event):void {
             this.inputQueue.push(function () {
@@ -354,12 +320,26 @@ module LwfPlayer {
         /**
          * push queue the release by mouse or touch coordinates.
          *
-         * @param {Event} e
+         * @param e
          */
         public onRelease(e:Event):void {
             this.inputQueue.push(function () {
                 this.lwf.inputRelease();
             });
+        }
+
+        /**
+         * onload call back by LWF.
+         *
+         * @param lwf
+         */
+        public onLoad(lwf:LWF.LWF) {
+            if (Util.isNotEmpty(lwf)) {
+                this.lwf = lwf;
+                this.exec();
+            } else {
+                this.handleLoadError();
+            }
         }
 
         /**
@@ -375,6 +355,36 @@ module LwfPlayer {
             this.onRelease = __bind(this.onRelease, this);
             this.onPress = __bind(this.onPress, this);
             this.onMove = __bind(this.onMove, this);
+            this.onLoad = __bind(this.onLoad, this);
+        }
+
+        /**
+         *  called by external LWF.
+         *  Load external LWF resource to attach on current running LWF.
+         *  For backward compatibility lwf-loader.
+         *
+         * @param lwf         parent LWF instance.
+         * @param lwfName     child-LWF ID.
+         * @param imageMap    for child-LWF imageMap object or function.
+         * @param privateData for child-LWF object.
+         * @param callback    callback to return attach LWF instance.
+         *
+         * @see https://github.com/gree/lwf-loader
+         */
+        private loadLWF(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void {
+            var childSettings:LwfSettings =
+                    LwfLoader.prepareChildLwfSettings(
+                        lwf, lwfName, imageMap, privateData, this.lwfSettings);
+            var _this = this;
+            childSettings.onload = function (childLwf:LWF.LWF) {
+                if (Util.isEmpty(childLwf)) {
+                    _this.handleLoadError();
+                    return callback(childSettings["error"], childLwf);
+                }
+                return callback(null, childLwf);
+            };
+
+            this.cache.loadLWF(childSettings);
         }
     }
 }
