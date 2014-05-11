@@ -446,6 +446,10 @@ var LwfPlayer;
                 childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(privateData["imageMap"]);
             }
 
+            if (privateData !== void 0 && privateData !== null) {
+                childSettings.privateData = privateData;
+            }
+
             childSettings.fitForHeight = false;
             childSettings.fitForWidth = false;
             childSettings.parentLWF = lwf;
@@ -558,6 +562,10 @@ var LwfPlayer;
             this.fromTime = global.performance.now();
             this.pausing = false;
             this.destroyed = false;
+            if ((playerSettings === void 0 || playerSettings === null) || (lwfSettings === void 0 || lwfSettings === null)) {
+                throw new Error("not enough argument.");
+            }
+
             this.playerSettings = playerSettings;
             this.lwfSettings.prepareLwfSettings(this, lwfSettings);
 

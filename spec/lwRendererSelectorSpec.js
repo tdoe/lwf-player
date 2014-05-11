@@ -2,7 +2,7 @@
  * Created by tdoe on 5/10/14.
  */
 
-describe("LwfUtil class test", function () {
+describe("RendererSelector class test", function () {
     var rendererSelector;
     var enableWebGL;
 

@@ -64,6 +64,10 @@ module LwfPlayer {
                 childSettings.imageMap = LwfSettings.getImageMapper(privateData["imageMap"]);
             }
 
+            if (privateData !== void 0 && privateData !== null) {
+                childSettings.privateData = privateData;
+            }
+
             childSettings.fitForHeight = false;
             childSettings.fitForWidth = false;
             childSettings.parentLWF = lwf;

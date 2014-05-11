@@ -46,6 +46,11 @@ module LwfPlayer {
          * @param {LwfPlayer.LwfSettings}    lwfSettings    Require lwf:load LWF path.
          */
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
+            if ((playerSettings === void 0 || playerSettings === null) ||
+                (lwfSettings === void 0 || lwfSettings === null)) {
+                throw new Error("not enough argument.");
+            }
+
             this.playerSettings = playerSettings;
             this.lwfSettings.prepareLwfSettings(this, lwfSettings);
 
