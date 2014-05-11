@@ -158,7 +158,6 @@ declare module LwfPlayer {
         private pausing;
         private destroyed;
         constructor(playerSettings: PlayerSettings, lwfSettings: LwfSettings);
-        private initStage();
         public play(): void;
         public pause(): void;
         public resume(): void;
@@ -171,6 +170,7 @@ declare module LwfPlayer {
         private handleLoadError();
         private handleException(exception);
         private exec();
+        private initStage();
         private initLwf();
         private renderLwf();
         private destroyLwf();

@@ -611,14 +611,6 @@ var LwfPlayer;
 
             this.rendererSelector.setRenderer(this.playerSettings);
         }
-        Player.prototype.initStage = function () {
-            this.stageContractor = new LwfPlayer.StageContractor(this);
-            this.stageContractor.createScreenStage(this.rendererSelector);
-            this.stageContractor.createEventReceiveStage();
-            this.stageContractor.addEventListeners();
-            this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
-        };
-
         Player.prototype.play = function () {
             this.restraint();
             this.initStage();
@@ -696,6 +688,14 @@ var LwfPlayer;
             } catch (e) {
                 _this.handleException(e);
             }
+        };
+
+        Player.prototype.initStage = function () {
+            this.stageContractor = new LwfPlayer.StageContractor(this);
+            this.stageContractor.createScreenStage(this.rendererSelector);
+            this.stageContractor.createEventReceiveStage();
+            this.stageContractor.addEventListeners();
+            this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
         };
 
         Player.prototype.initLwf = function () {

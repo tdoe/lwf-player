@@ -59,14 +59,6 @@ module LwfPlayer {
             this.rendererSelector.setRenderer(this.playerSettings);
         }
 
-        private initStage() {
-            this.stageContractor = new StageContractor(this);
-            this.stageContractor.createScreenStage(this.rendererSelector);
-            this.stageContractor.createEventReceiveStage();
-            this.stageContractor.addEventListeners();
-            this.coordinator = new Coordinator(this.stageContractor);
-        }
-
         /**
          * load and play LWF.
          */
@@ -197,6 +189,17 @@ module LwfPlayer {
             } catch (e) {
                 _this.handleException(e);
             }
+        }
+
+        /**
+         * initialize LWF animation screen stage, and coordinate class.
+         */
+        private initStage() {
+            this.stageContractor = new StageContractor(this);
+            this.stageContractor.createScreenStage(this.rendererSelector);
+            this.stageContractor.createEventReceiveStage();
+            this.stageContractor.addEventListeners();
+            this.coordinator = new Coordinator(this.stageContractor);
         }
 
         /**
