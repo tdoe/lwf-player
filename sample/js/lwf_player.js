@@ -691,7 +691,6 @@ var LwfPlayer;
                 if (this.goPlayBack) {
                     this.goPlayBack = false;
                     this.lwf.init();
-                    this.lwf.rootMovie.gotoAndPlay(1);
                 }
 
                 if (LwfPlayer.Util.isNotEmpty(this.lwf) && !this.pausing) {

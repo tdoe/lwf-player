@@ -191,7 +191,6 @@ module LwfPlayer {
                 if (this.goPlayBack) {
                     this.goPlayBack = false;
                     this.lwf.init();
-                    this.lwf.rootMovie.gotoAndPlay(1);
                 }
 
                 if (Util.isNotEmpty(this.lwf) && !this.pausing) {
