@@ -112,8 +112,12 @@ var LwfPlayer;
                 return true;
             }
 
-            if (arg instanceof String || arg instanceof Array) {
+            if (((typeof arg === "string" || arg instanceof String)) || arg instanceof Array) {
                 return arg.length === 0;
+            }
+
+            if (arg instanceof Function || isFinite(arg)) {
+                return false;
             }
 
             for (var i in arg) {
@@ -598,9 +602,14 @@ var LwfPlayer;
             this.inputQueue = [];
             this.fromTime = global.performance.now();
             this.pausing = false;
+            this.goPlayBack = false;
             this.destroyed = false;
             if (LwfPlayer.Util.isEmpty(playerSettings) || LwfPlayer.Util.isEmpty(lwfSettings)) {
                 throw new Error("not enough argument.");
+            }
+
+            if (!(playerSettings instanceof LwfPlayer.PlayerSettings) || !(lwfSettings instanceof LwfPlayer.LwfSettings)) {
+                throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
             }
 
             this.playerSettings = playerSettings;
@@ -627,6 +636,10 @@ var LwfPlayer;
 
         Player.prototype.resume = function () {
             this.pausing = false;
+        };
+
+        Player.prototype.playBack = function () {
+            this.goPlayBack = true;
         };
 
         Player.prototype.destroy = function () {
@@ -674,6 +687,13 @@ var LwfPlayer;
                     this.destroyLwf();
                     return;
                 }
+
+                if (this.goPlayBack) {
+                    this.goPlayBack = false;
+                    this.lwf.init();
+                    this.lwf.rootMovie.gotoAndPlay(1);
+                }
+
                 if (LwfPlayer.Util.isNotEmpty(this.lwf) && !this.pausing) {
                     for (var i = 0; i < this.inputQueue.length; i++) {
                         this.inputQueue[i].apply(this);
@@ -744,6 +764,34 @@ var LwfPlayer;
 
             this.lwf.property.moveTo(0, 0);
             this.lwf.exec(tickTack);
+            this.lwf.render();
+
+            if (this.playerSettings.debug) {
+                this.stageContractor.viewDebugInfo();
+            }
+        };
+
+        Player.prototype.renderRewindLwf = function () {
+            var stageWidth = this.stageContractor.getScreenStageWidth();
+            var stageHeight = this.stageContractor.getScreenStageHeight();
+            var toTime = global.performance.now();
+            var tickTack = (toTime - this.fromTime) / 1000;
+            this.fromTime = toTime;
+
+            this.lwf.property.clear();
+
+            if (this.lwfSettings.fitForWidth) {
+                this.lwf.fitForWidth(stageWidth, stageHeight);
+            } else {
+                this.lwf.fitForHeight(stageWidth, stageHeight);
+            }
+
+            if (this.getRendererSelector().getRenderer() === LwfPlayer.RendererSelector.webkitCSSRenderer) {
+                this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
+            }
+
+            this.lwf.property.moveTo(0, 0);
+            this.lwf.exec(0 - tickTack);
             this.lwf.render();
 
             if (this.playerSettings.debug) {

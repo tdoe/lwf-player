@@ -156,11 +156,13 @@ declare module LwfPlayer {
         private inputQueue;
         private fromTime;
         private pausing;
+        private goPlayBack;
         private destroyed;
         constructor(playerSettings: PlayerSettings, lwfSettings: LwfSettings);
         public play(): void;
         public pause(): void;
         public resume(): void;
+        public playBack(): void;
         public destroy(): void;
         public getCoordinator(): Coordinator;
         public getPlayerSettings(): PlayerSettings;
@@ -173,6 +175,7 @@ declare module LwfPlayer {
         private initStage();
         private initLwf();
         private renderLwf();
+        private renderRewindLwf();
         private destroyLwf();
         private inputPoint(e);
         private inputPress(e);

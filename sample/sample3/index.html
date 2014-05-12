@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,user-scalable=no,maximum-scale=1.0,minimum-scale=1.0"/>
+
+</head>
+<body>
+<input type="button" value="pause" id="pause">
+<input type="button" value="resume" id="resume">
+<input type="button" value="play back" id="playBack">
+
+<div id="lwf"></div>
+<script type="text/javascript" src="../js/lwf.js"></script>
+<script type="text/javascript" src="../js/lwf_player.js"></script>
+
+<script type="text/javascript">
+    window.addEventListener('DOMContentLoaded', function () {
+
+        var playerSettings = new LwfPlayer.PlayerSettings();
+        playerSettings.targetStage = document.getElementById('lwf');
+        playerSettings.debug = true;
+
+        var lwfSettings = new LwfPlayer.LwfSettings();
+        lwfSettings.lwf = "neko.lwf";
+        lwfSettings.handler = {
+            loadError: function (e) {
+                alert("エラーだよ (・ω<)");
+            },
+            exception: function (e) {
+                alert("例外だよ (・ω<)");
+            }
+        };
+        lwfSettings.lwfMap = {
+            nekochild: "nekochild.lwf"
+        };
+
+        var player = new LwfPlayer.Player(playerSettings, lwfSettings);
+        player.play();
+
+        var pause = document.getElementById("pause");
+        var resume = document.getElementById("resume");
+        var playBack = document.getElementById("playBack");
+
+        pause.addEventListener("mousedown", function (e) {
+            player.pause();
+        });
+
+        resume.addEventListener("mousedown", function (e) {
+            player.resume();
+        });
+
+        playBack.addEventListener("mousedown", function (e) {
+            player.playBack();
+        });
+    });
+</script>
+</body>
+</html>
