@@ -27,34 +27,29 @@ Load "lwf_player.js" file.
 ```
 
 player setting and LWF setting.  
+Please use always an instance of LwfPlayer.PlayerSettings.  
 playerSetting to the 3 types (maybe more later..
 
 ```
-var playerSetting = {
-        targetStage:document.querySelector("#lwf"), // require target Element.
-        renderer: "canvas" , // optional, "canvas" or "webgl" or "webkitcss".
-        debug:true  // optional, by "true" Show the debug information.
-    };
+var playerSettings = new LwfPlayer.PlayerSettings();
+playerSettings.targetStage = document.getElementById('lwf');// require any stage element.
+playerSettings.renderer = LwfPlayer.RendererSelector.canvasRenderer; // option. see other renderer is LwfPlayer.RendererSelector class.
+playerSettings.debug = true;// option. true is running debug mode.
 ```
 
 Lwf settings sample.  
+Please use always an instance of LwfPlayer.LwfSettings.  
 more info is [https://github.com/gree/lwf](https://github.com/gree/lwf)  
  or [lwf_player_lwf_settings.ts](https://github.com/tdoe/lwf-player/blob/master/src/lwf_player_lwf_settings.ts)  
 but [lwf_player_lwf_settings.ts](https://github.com/tdoe/lwf-player/blob/master/src/lwf_player_lwf_settings.ts) is not all settings.
 
 ```
 // for LWF settings.
-var lwfSetting = {
-        lwf:"path/to/lwf_file.lwf",
-        prefix:"",
-        imagePrefix:"",
-        imageMap:{
-            "a:png" : "path/to/a.png"
-        },
-        privateData : {
-            ...
-        }
-    };
+ var lwfSettings = new LwfPlayer.LwfSettings();
+lwfSettings.lwf = "hoge.lwf"; // require LWF file path.
+lwfSettings.prefix = "lwf/js/images/prefix";
+lwfSettings.imagePrefix = "images/prefix";
+lwfSettings.privateData = {...};
 ```
 
 call player and play.
@@ -68,6 +63,7 @@ player.play(); // play start LWF.
 // othoer methods.
 player.pause(); // pause LWF.
 player.resume(); // replay LWF from pause.
+player.playBack(); // LWF playback from beginning.
 player.destroy(); // stop LWF and destroy LWF instance.
 ```
 
