@@ -70,6 +70,10 @@ player.destroy(); // stop LWF and destroy LWF instance.
 ##License
 This software is released under the MIT License, see LICENSE.txt.
 
+##Other LWF Document
+http://gree.github.io/lwf/
+http://lwf-users.org/
+
 ##Thanks
 https://github.com/gree/lwf  
 https://github.com/gree/lwf-loader
