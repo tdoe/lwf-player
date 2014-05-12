@@ -92,7 +92,7 @@ module LwfPlayer {
         }
 
         /**
-         * LWF play back begging.
+         * LWF play back from beginning.
          */
         public playBack():void {
             this.goPlayBack = true;
