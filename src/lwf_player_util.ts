@@ -119,8 +119,12 @@ module LwfPlayer {
                 return true;
             }
 
-            if (arg instanceof String || arg instanceof Array) {
+            if (((typeof arg === "string" || arg instanceof String)) || arg instanceof Array) {
                 return arg.length === 0;
+            }
+
+            if (arg instanceof Function || isFinite(arg)) {
+                return false;
             }
 
             for (var i in arg) {

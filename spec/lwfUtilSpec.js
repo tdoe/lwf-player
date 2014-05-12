@@ -69,5 +69,12 @@ describe("LwfUtil class test", function () {
 
         arg = {};
         expect(util.isEmpty(arg)).toEqual(true);
+
+				arg = function(){
+				};
+        expect(util.isEmpty(arg)).toEqual(false);
+
+				arg = 1;
+				expect(util.isEmpty(arg)).toEqual(false);
     });
 });
