@@ -39,6 +39,7 @@ module LwfPlayer {
         private pausing:Boolean = false;
         private goPlayBack:Boolean = false;
         private destroyed:boolean = false;
+        private goRestart:boolean = false;
 
         /**
          * initialize this Player.
@@ -47,20 +48,7 @@ module LwfPlayer {
          * @param lwfSettings    Require lwf:load LWF path.
          */
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
-            if (Util.isEmpty(playerSettings) || Util.isEmpty(lwfSettings)) {
-                throw new Error("not enough argument.");
-            }
-
-            if (!(playerSettings instanceof PlayerSettings) || !(lwfSettings instanceof LwfSettings)) {
-                throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
-            }
-
-            this.playerSettings = playerSettings;
-            this.playerSettings.validationPlayerSettings();
-
-            this.lwfSettings = lwfSettings;
-            this.lwfSettings.validationLwfSettings();
-
+            this.setSettingsAndValidation(playerSettings, lwfSettings);
             this.rendererSelector.setRenderer(this.playerSettings);
         }
 
@@ -96,6 +84,22 @@ module LwfPlayer {
          */
         public playBack():void {
             this.goPlayBack = true;
+        }
+
+        /**
+         * Restart LWF by same player instance.
+         * using same stage and renderer.
+         *
+         * @param lwfSettings
+         */
+        public reStart(lwfSettings:LwfSettings):void {
+            this.setSettingsAndValidation(this.playerSettings, lwfSettings);
+
+            this.lwfSettings.prepareLwfSettings(this);
+
+            this.goRestart = true;
+
+            this.cache.loadLWF(this.lwfSettings);
         }
 
         /**
@@ -183,6 +187,12 @@ module LwfPlayer {
         private exec():void {
             var _this = this;
             try {
+
+                if (this.goRestart) {
+                    this.goRestart = false;
+                    return;
+                }
+
                 if (this.destroyed) {
                     this.destroyLwf();
                     return;
@@ -281,34 +291,6 @@ module LwfPlayer {
             }
         }
 
-        private renderRewindLwf() {
-            var stageWidth = this.stageContractor.getScreenStageWidth();
-            var stageHeight = this.stageContractor.getScreenStageHeight();
-            var toTime = global.performance.now();
-            var tickTack = (toTime - this.fromTime) / 1000;//fast forward fromTime -> toTime
-            this.fromTime = toTime;
-
-            this.lwf.property.clear();
-
-            if (this.lwfSettings.fitForWidth) {
-                this.lwf.fitForWidth(stageWidth, stageHeight);
-            } else {
-                this.lwf.fitForHeight(stageWidth, stageHeight);
-            }
-
-            if (this.getRendererSelector().getRenderer() === RendererSelector.webkitCSSRenderer) {
-                this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
-            }
-
-            this.lwf.property.moveTo(0, 0);
-            this.lwf.exec(0 - tickTack);
-            this.lwf.render();
-
-            if (this.playerSettings.debug) {
-                this.stageContractor.viewDebugInfo();
-            }
-        }
-
         /**
          * destroy LWF resource and remove event listener.
          */
@@ -322,6 +304,28 @@ module LwfPlayer {
                 console.log("destroy LWF.");
             }
             console.log("LWF is destroyed.");
+        }
+
+        /**
+         * check args property, set the instance member.
+         *
+         * @param playerSettings
+         * @param lwfSettings
+         */
+        private setSettingsAndValidation(playerSettings:PlayerSettings, lwfSettings:LwfSettings):void {
+            if (Util.isEmpty(playerSettings) || Util.isEmpty(lwfSettings)) {
+                throw new Error("not enough argument.");
+            }
+
+            if (!(playerSettings instanceof PlayerSettings) || !(lwfSettings instanceof LwfSettings)) {
+                throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
+            }
+
+            this.playerSettings = playerSettings;
+            this.playerSettings.validationPlayerSettings();
+
+            this.lwfSettings = lwfSettings;
+            this.lwfSettings.validationLwfSettings();
         }
 
         /**

@@ -604,20 +604,8 @@ var LwfPlayer;
             this.pausing = false;
             this.goPlayBack = false;
             this.destroyed = false;
-            if (LwfPlayer.Util.isEmpty(playerSettings) || LwfPlayer.Util.isEmpty(lwfSettings)) {
-                throw new Error("not enough argument.");
-            }
-
-            if (!(playerSettings instanceof LwfPlayer.PlayerSettings) || !(lwfSettings instanceof LwfPlayer.LwfSettings)) {
-                throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
-            }
-
-            this.playerSettings = playerSettings;
-            this.playerSettings.validationPlayerSettings();
-
-            this.lwfSettings = lwfSettings;
-            this.lwfSettings.validationLwfSettings();
-
+            this.goRestart = false;
+            this.setSettingsAndValidation(playerSettings, lwfSettings);
             this.rendererSelector.setRenderer(this.playerSettings);
         }
         Player.prototype.play = function () {
@@ -640,6 +628,16 @@ var LwfPlayer;
 
         Player.prototype.playBack = function () {
             this.goPlayBack = true;
+        };
+
+        Player.prototype.reStart = function (lwfSettings) {
+            this.setSettingsAndValidation(this.playerSettings, lwfSettings);
+
+            this.lwfSettings.prepareLwfSettings(this);
+
+            this.goRestart = true;
+
+            this.cache.loadLWF(this.lwfSettings);
         };
 
         Player.prototype.destroy = function () {
@@ -683,6 +681,11 @@ var LwfPlayer;
         Player.prototype.exec = function () {
             var _this = this;
             try  {
+                if (this.goRestart) {
+                    this.goRestart = false;
+                    return;
+                }
+
                 if (this.destroyed) {
                     this.destroyLwf();
                     return;
@@ -770,34 +773,6 @@ var LwfPlayer;
             }
         };
 
-        Player.prototype.renderRewindLwf = function () {
-            var stageWidth = this.stageContractor.getScreenStageWidth();
-            var stageHeight = this.stageContractor.getScreenStageHeight();
-            var toTime = global.performance.now();
-            var tickTack = (toTime - this.fromTime) / 1000;
-            this.fromTime = toTime;
-
-            this.lwf.property.clear();
-
-            if (this.lwfSettings.fitForWidth) {
-                this.lwf.fitForWidth(stageWidth, stageHeight);
-            } else {
-                this.lwf.fitForHeight(stageWidth, stageHeight);
-            }
-
-            if (this.getRendererSelector().getRenderer() === LwfPlayer.RendererSelector.webkitCSSRenderer) {
-                this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
-            }
-
-            this.lwf.property.moveTo(0, 0);
-            this.lwf.exec(0 - tickTack);
-            this.lwf.render();
-
-            if (this.playerSettings.debug) {
-                this.stageContractor.viewDebugInfo();
-            }
-        };
-
         Player.prototype.destroyLwf = function () {
             if (LwfPlayer.Util.isNotEmpty(this.lwf)) {
                 this.stageContractor.removeEventListeners();
@@ -808,6 +783,22 @@ var LwfPlayer;
                 console.log("destroy LWF.");
             }
             console.log("LWF is destroyed.");
+        };
+
+        Player.prototype.setSettingsAndValidation = function (playerSettings, lwfSettings) {
+            if (LwfPlayer.Util.isEmpty(playerSettings) || LwfPlayer.Util.isEmpty(lwfSettings)) {
+                throw new Error("not enough argument.");
+            }
+
+            if (!(playerSettings instanceof LwfPlayer.PlayerSettings) || !(lwfSettings instanceof LwfPlayer.LwfSettings)) {
+                throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
+            }
+
+            this.playerSettings = playerSettings;
+            this.playerSettings.validationPlayerSettings();
+
+            this.lwfSettings = lwfSettings;
+            this.lwfSettings.validationLwfSettings();
         };
 
         Player.prototype.inputPoint = function (e) {
