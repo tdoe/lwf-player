@@ -93,12 +93,11 @@ module LwfPlayer {
          * @param lwfSettings
          */
         public reStart(lwfSettings:LwfSettings):void {
+            this.goRestart = true;
+
             this.setSettingsAndValidation(this.playerSettings, lwfSettings);
 
             this.lwfSettings.prepareLwfSettings(this);
-
-            this.goRestart = true;
-
             this.cache.loadLWF(this.lwfSettings);
         }
 
