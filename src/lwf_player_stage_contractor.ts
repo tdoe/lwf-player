@@ -4,6 +4,7 @@
  * This class is for LWF animation rendering element operation.
  */
 
+/// <reference path="lwf_player_renderer_name.ts"/>
 /// <reference path="lwf_player_util.ts"/>
 /// <reference path="lwf_player_renderer_selector.ts"/>
 
@@ -45,12 +46,12 @@ module LwfPlayer {
                 this.targetStage.style.position = "relative";
             }
 
-            if (this.player.getRendererSelector().getRenderer() === RendererSelector.webkitCSSRenderer) {
+            if (this.player.getRendererSelector().getRenderer() === RendererName[RendererName.useWebkitCSSRenderer]) {
                 this.devicePixelRatio = 1;
             }
 
             /* set DPR to 2 when running  WebGLRenderer on ARROWS F-series device */
-            if (this.player.getRendererSelector().getRenderer() === RendererSelector.webGLRenderer && / F-/.test(Util.ua)) {
+            if (this.player.getRendererSelector().getRenderer() === RendererName[RendererName.useWebGLRenderer] && / F-/.test(Util.ua)) {
                 this.devicePixelRatio = 2;
             }
 
@@ -237,8 +238,8 @@ module LwfPlayer {
          * @param rendererSelector
          */
         public createScreenStage(rendererSelector:RendererSelector):void {
-            if (rendererSelector.getRenderer() === RendererSelector.canvasRenderer ||
-                rendererSelector.getRenderer() === RendererSelector.webGLRenderer) {
+            if (rendererSelector.getRenderer() === RendererName[RendererName.useCanvasRenderer] ||
+                rendererSelector.getRenderer() === RendererName[RendererName.useWebGLRenderer]) {
                 this.screenStage = document.createElement("canvas");
             } else {
                 this.screenStage = document.createElement("div");

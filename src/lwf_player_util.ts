@@ -4,6 +4,7 @@
  * This class is for utility and Cross browser polyfills.
  */
 
+/// <reference path="lwf_player_renderer_name.ts"/>
 /// <reference path="lwf_player_renderer_selector.ts"/>
 
 declare var global:any; // window or worker assigned by LWF
@@ -64,7 +65,7 @@ module LwfPlayer {
 
             /** handle buggy css behaviour in certain devices */
             if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) &&
-                renderer === RendererSelector.webkitCSSRenderer) {
+                renderer === RendererName[RendererName.useWebkitCSSRenderer]) {
                 lwfSettings.quirkyClearRect = true;
             }
         }
@@ -76,7 +77,7 @@ module LwfPlayer {
          * @returns {*}
          */
         public static getOpacity(renderer:string):string {
-            if (renderer === RendererSelector.webkitCSSRenderer &&
+            if (renderer === RendererName[RendererName.useWebkitCSSRenderer] &&
                 /Android 2\.3\.[5-7]/.test(Util.ua) &&
                 /SH/.test(Util.ua)) {
                 return "0.9999";

@@ -23,21 +23,21 @@ describe("RendererSelector class test", function () {
 
     it("test auto selector", function () {
         if (enableWebGL) {
-            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererSelector.webGLRenderer);
+            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererName[2]);
         } else {
-            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererSelector.canvasRenderer);
+            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererName[0]);
         }
     });
 
     it("test setRenderer", function () {
         var playerSetting = new LwfPlayer.PlayerSettings();
-        playerSetting.renderer = LwfPlayer.RendererSelector.webkitCSSRenderer;
+        playerSetting.renderer = LwfPlayer.RendererName[1];
         rendererSelector.setRenderer(playerSetting);
 
         if (enableWebGL) {
-            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererSelector.webGLRenderer);
+            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererName[2]);
         } else {
-            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererSelector.webkitCSSRenderer);
+            expect(rendererSelector.getRenderer()).toEqual(LwfPlayer.RendererName[1]);
         }
     });
 });

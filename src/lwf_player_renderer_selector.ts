@@ -5,17 +5,14 @@
  * will be cross-browser countermeasure.
  */
 
-    /// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_renderer_name.ts"/>
 
 module LwfPlayer {
 
     "use strict";
 
     export class RendererSelector {
-
-        public static webkitCSSRenderer:string = "useWebkitCSSRenderer";
-        public static webGLRenderer:string = "useWebGLRenderer";
-        public static canvasRenderer:string = "useCanvasRenderer";
 
         private renderer:string;
 
@@ -46,9 +43,9 @@ module LwfPlayer {
             }
 
             switch (playerSettings.renderer) {
-                case RendererSelector.canvasRenderer:
-                case RendererSelector.webkitCSSRenderer:
-                case RendererSelector.webGLRenderer:
+                case RendererName[RendererName.useCanvasRenderer]:
+                case RendererName[RendererName.useWebkitCSSRenderer]:
+                case RendererName[RendererName.useWebGLRenderer]:
                     this.renderer = playerSettings.renderer;
                     break;
                 default :
@@ -69,29 +66,29 @@ module LwfPlayer {
 
             for (var i = 0; i < contextNames.length; i++) {
                 if (canvas.getContext(contextNames[i])) {
-                    this.renderer = RendererSelector.webGLRenderer;
+                    this.renderer = RendererName[RendererName.useWebGLRenderer];
                     break;
                 }
             }
 
             /** iOS 4 devices should use CSS renderer due to spec issue */
             if (/iP(ad|hone|od).*OS 4/.test(Util.ua)) {
-                this.renderer = RendererSelector.webkitCSSRenderer;
+                this.renderer = RendererName[RendererName.useWebkitCSSRenderer];
             } else if (/Android 2\.1/.test(Util.ua) || /Android 2\.3\.[5-7]/.test(Util.ua)) {
                 /** Android 2.1 does not work with Canvas, force to use CSS renderer */
                 /** Android 2.3.5 or higher 2.3 versions does not work properly on canvas */
-                this.renderer = RendererSelector.webkitCSSRenderer;
+                this.renderer = RendererName[RendererName.useWebkitCSSRenderer];
             } else if (/Android 4/.test(Util.ua)) {
                 /** Android 4.x devices are recommended to run with CSS renderer except for Chrome*/
                 if (/Chrome/.test(Util.ua)) {
-                    this.renderer = RendererSelector.canvasRenderer;
+                    this.renderer = RendererName[RendererName.useCanvasRenderer];
                 } else {
-                    this.renderer = RendererSelector.webkitCSSRenderer;
+                    this.renderer = RendererName[RendererName.useWebkitCSSRenderer];
                 }
             }
 
             if (Util.isEmpty(this.renderer)) {
-                this.renderer = RendererSelector.canvasRenderer;
+                this.renderer = RendererName[RendererName.useCanvasRenderer];
             }
         }
     }

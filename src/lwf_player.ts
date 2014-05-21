@@ -7,6 +7,7 @@
 
 /// <reference path="lib/lwf.d.ts"/>
 
+/// <reference path="lwf_player_renderer_name.ts"/>
 /// <reference path="lwf_player_util.ts"/>
 /// <reference path="lwf_player_coordinator.ts"/>
 /// <reference path="lwf_player_lwf_settings.ts"/>
@@ -236,15 +237,15 @@ module LwfPlayer {
         private initLwf():void {
             try {
                 switch (this.rendererSelector.getRenderer()) {
-                    case RendererSelector.canvasRenderer:
+                    case RendererName[RendererName.useCanvasRenderer]:
                         global.LWF.useCanvasRenderer();
                         break;
 
-                    case RendererSelector.webkitCSSRenderer:
+                    case RendererName[RendererName.useWebkitCSSRenderer]:
                         global.LWF.useWebkitCSSRenderer();
                         break;
 
-                    case RendererSelector.webGLRenderer:
+                    case RendererName[RendererName.useWebGLRenderer]:
                         global.LWF.useWebGLRenderer();
                         break;
 
@@ -277,7 +278,7 @@ module LwfPlayer {
                 this.lwf.fitForHeight(stageWidth, stageHeight);
             }
 
-            if (this.getRendererSelector().getRenderer() === RendererSelector.webkitCSSRenderer) {
+            if (this.getRendererSelector().getRenderer() === RendererName[RendererName.useWebkitCSSRenderer]) {
                 this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
             }
 

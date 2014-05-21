@@ -1,9 +1,13 @@
 /// <reference path="../src/lib/lwf.d.ts" />
 declare module LwfPlayer {
+    enum RendererName {
+        useCanvasRenderer = 0,
+        useWebkitCSSRenderer = 1,
+        useWebGLRenderer = 2,
+    }
+}
+declare module LwfPlayer {
     class RendererSelector {
-        static webkitCSSRenderer: string;
-        static webGLRenderer: string;
-        static canvasRenderer: string;
         private renderer;
         constructor();
         public getRenderer(): string;
