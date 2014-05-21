@@ -64,6 +64,7 @@ player.play(); // play start LWF.
 player.pause(); // pause LWF.
 player.resume(); // replay LWF from pause.
 player.playBack(); // LWF playback from beginning.
+player.reStart(lwfSettings); // restart LWF by same player instance, stage and renderer.
 player.destroy(); // stop LWF and destroy LWF instance.
 ```
 
