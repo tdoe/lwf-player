@@ -1,4 +1,5 @@
 /// <reference path="lib/lwf.d.ts"/>
+/// <reference path="lib/params.d.ts"/>
 
 /// <reference path="lwf_player_renderer_name.ts"/>
 /// <reference path="lwf_player_util.ts"/>
@@ -7,8 +8,6 @@
 /// <reference path="lwf_player_player_settings.ts"/>
 /// <reference path="lwf_player_renderer_selector.ts"/>
 /// <reference path="lwf_player_stage_contractor.ts"/>
-
-declare var global:any; // window or worker assigned by LWF
 
 /**
  * Created by tdoe on 5/5/14.
@@ -409,7 +408,7 @@ module LwfPlayer {
          *
          * @see https://github.com/gree/lwf-loader
          */
-        public loadLWF = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void => {
+        public loadLWF = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:any, callback:Function):void => {
             var childSettings:LwfSettings =
                     LwfLoader.prepareChildLwfSettings(
                         lwf, lwfName, imageMap, privateData, this._lwfSettings);

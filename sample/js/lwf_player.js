@@ -3,6 +3,9 @@
 *
 * This class handling for LWF-Renderer choice.
 * will be cross-browser countermeasure.
+*
+* @type {Object}
+* @const
 */
 var LwfPlayer;
 (function (LwfPlayer) {
@@ -118,14 +121,14 @@ var LwfPlayer;
     })();
     LwfPlayer.RendererSelector = RendererSelector;
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_renderer_name.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
 /**
 * Created by tdoe on 5/5/14.
 *
 * This class is for utility and Cross browser polyfills.
 */
-/// <reference path="lwf_player_renderer_name.ts"/>
-/// <reference path="lwf_player_renderer_selector.ts"/>
-
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
@@ -249,6 +252,7 @@ var LwfPlayer;
     */
     if (Util.isAndroid && (Util.isChrome || / SC-0/.test(Util.ua))) {
         document.body.addEventListener("touchstart", function () {
+            //nothing todo...
         });
     }
 })(LwfPlayer || (LwfPlayer = {}));
@@ -422,11 +426,11 @@ var LwfPlayer;
                     _this._screenStage = document.createElement("div");
                 }
 
-                var pos = _this._player.lwfSettings.pos;
-                if (LwfPlayer.Util.isEmpty(pos)) {
+                if (LwfPlayer.Util.isEmpty(_this._player.lwfSettings.pos)) {
                     _this._player.lwfSettings.initPos();
-                    pos = _this._player.lwfSettings.pos;
                 }
+
+                var pos = _this._player.lwfSettings.pos;
 
                 _this._screenStage.style.position = pos["position"];
                 _this._screenStage.style.top = pos["top"] + "px";
@@ -567,16 +571,23 @@ var LwfPlayer;
         return StageContractor;
     })();
     LwfPlayer.StageContractor = StageContractor;
+
+    var Position = (function () {
+        function Position() {
+        }
+        return Position;
+    })();
+    LwfPlayer.Position = Position;
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_stage_contractor.ts"/>
 /**
 * Created by tdoe on 5/5/14.
 *
 * this class is the coordinate handler.
 * coordinate input from mouse or touch.
 */
-/// <reference path="lwf_player_util.ts"/>
-/// <reference path="lwf_player_stage_contractor.ts"/>
-
 var LwfPlayer;
 (function (LwfPlayer) {
     var Coordinator = (function () {
@@ -679,15 +690,15 @@ var LwfPlayer;
     })();
     LwfPlayer.Coordinator = Coordinator;
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_lwf_settings.ts"/>
+/// <reference path="lwf_player.ts"/>
 /**
 * Created by tdoe on 5/9/14.
 *
 * This class is for For backward compatibility lwf-loader.
 */
-/// <reference path="lwf_player_util.ts"/>
-/// <reference path="lwf_player_lwf_settings.ts"/>
-/// <reference path="lwf_player.ts"/>
-
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
@@ -697,6 +708,7 @@ var LwfPlayer;
         }
         LwfLoader.getLwfPath = function (lwfName) {
             var _lwfName = lwfName;
+
             if (lwfName.indexOf("/") >= 0) {
                 _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
             }
@@ -705,7 +717,7 @@ var LwfPlayer;
         };
 
         LwfLoader.setLoader = function (player, lwfSettings) {
-            lwfSettings.privateData["lwfLoader"] = player;
+            lwfSettings.privateData.lwfLoader = player;
         };
 
         LwfLoader.prepareChildLwfSettings = function (lwf, lwfName, imageMap, privateData, lwfSetting) {
@@ -720,19 +732,19 @@ var LwfPlayer;
             if (LwfPlayer.Util.isNotEmpty(imageMap)) {
                 childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(imageMap);
             } else if (privateData.hasOwnProperty("imageMap")) {
-                childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(privateData["imageMap"]);
+                childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(privateData.imageMap);
             }
 
             if (LwfPlayer.Util.isNotEmpty(privateData)) {
                 childSettings.privateData = privateData;
             }
 
+            childSettings.lwf = childSettings.getLwfPath(lwfName);
+            childSettings.stage = lwfSetting.stage;
             childSettings.fitForHeight = false;
             childSettings.fitForWidth = false;
             childSettings.parentLWF = lwf;
             childSettings.active = false;
-            childSettings.lwf = childSettings.getLwfPath(lwfName);
-            childSettings.stage = lwfSetting.stage;
 
             return childSettings;
         };
@@ -740,6 +752,10 @@ var LwfPlayer;
     })();
     LwfPlayer.LwfLoader = LwfLoader;
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lib/params.d.ts" />
+/// <reference path="lwf_player.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
+/// <reference path="lwf_player_lwf_loader.ts"/>
 /**
 * Created by tdoe on 5/5/14.
 *
@@ -750,9 +766,6 @@ var LwfPlayer;
 * because configuration conflict occurs.
 * If you are in need of the same setting, use a deep copy object.
 */
-/// <reference path="lwf_player.ts"/>
-/// <reference path="lwf_player_renderer_selector.ts"/>
-/// <reference path="lwf_player_lwf_loader.ts"/>
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
@@ -760,6 +773,7 @@ var LwfPlayer;
     var LwfSettings = (function () {
         function LwfSettings() {
             var _this = this;
+            this.pos = {};
             /**
             * validation check this instance.
             */
@@ -773,9 +787,9 @@ var LwfPlayer;
             */
             this.initPos = function () {
                 _this.pos = {
-                    "position": "absolute",
                     "top": 0,
-                    "left": 0
+                    "left": 0,
+                    "position": "absolute"
                 };
             };
             /**
@@ -940,6 +954,7 @@ var LwfPlayer;
     LwfPlayer.PlayerSettings = PlayerSettings;
 })(LwfPlayer || (LwfPlayer = {}));
 /// <reference path="lib/lwf.d.ts"/>
+/// <reference path="lib/params.d.ts"/>
 /// <reference path="lwf_player_renderer_name.ts"/>
 /// <reference path="lwf_player_util.ts"/>
 /// <reference path="lwf_player_coordinator.ts"/>
@@ -947,7 +962,6 @@ var LwfPlayer;
 /// <reference path="lwf_player_player_settings.ts"/>
 /// <reference path="lwf_player_renderer_selector.ts"/>
 /// <reference path="lwf_player_stage_contractor.ts"/>
-
 /**
 * Created by tdoe on 5/5/14.
 *

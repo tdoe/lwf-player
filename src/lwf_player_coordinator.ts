@@ -1,15 +1,13 @@
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_stage_contractor.ts"/>
+
 /**
  * Created by tdoe on 5/5/14.
  *
  * this class is the coordinate handler.
  * coordinate input from mouse or touch.
  */
-
-/// <reference path="lwf_player_util.ts"/>
-/// <reference path="lwf_player_stage_contractor.ts"/>
-
-declare var global:any; // window or worker assigned by LWF
-
 module LwfPlayer {
 
     export class Coordinator {

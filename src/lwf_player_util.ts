@@ -1,14 +1,12 @@
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_renderer_name.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
+
 /**
  * Created by tdoe on 5/5/14.
  *
  * This class is for utility and Cross browser polyfills.
  */
-
-/// <reference path="lwf_player_renderer_name.ts"/>
-/// <reference path="lwf_player_renderer_selector.ts"/>
-
-declare var global:any; // window or worker assigned by LWF
-
 module LwfPlayer {
 
     "use strict";
@@ -144,7 +142,7 @@ module LwfPlayer {
          *
          * @returns {boolean}
          */
-        public static isNotEmpty = (arg) => {
+        public static isNotEmpty = (arg:any) => {
             return !Util.isEmpty(arg);
         };
     }
@@ -191,6 +189,7 @@ module LwfPlayer {
      */
     if (Util.isAndroid && (Util.isChrome || / SC-0/.test(Util.ua))) {
         document.body.addEventListener("touchstart", () => {
+            //nothing todo...
         });
     }
 }

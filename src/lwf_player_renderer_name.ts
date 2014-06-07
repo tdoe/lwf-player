@@ -3,6 +3,9 @@
  *
  * This class handling for LWF-Renderer choice.
  * will be cross-browser countermeasure.
+ *
+ * @type {Object}
+ * @const
  */
 module LwfPlayer {
 

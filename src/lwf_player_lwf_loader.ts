@@ -1,15 +1,13 @@
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_lwf_settings.ts"/>
+/// <reference path="lwf_player.ts"/>
+
 /**
  * Created by tdoe on 5/9/14.
  *
  * This class is for For backward compatibility lwf-loader.
  */
-
-/// <reference path="lwf_player_util.ts"/>
-/// <reference path="lwf_player_lwf_settings.ts"/>
-/// <reference path="lwf_player.ts"/>
-
-declare var global:any; // window or worker assigned by LWF
-
 module LwfPlayer {
 
     "use strict";
@@ -27,6 +25,7 @@ module LwfPlayer {
          */
         public static getLwfPath = (lwfName:string):string => {
             var _lwfName = lwfName;
+
             if (lwfName.indexOf("/") >= 0) {
                 _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
             }
@@ -35,7 +34,7 @@ module LwfPlayer {
         };
 
         public static setLoader = (player:Player, lwfSettings:LwfSettings) => {
-            lwfSettings.privateData["lwfLoader"] = player;
+            lwfSettings.privateData.lwfLoader = player;
         };
 
         /**
@@ -49,7 +48,7 @@ module LwfPlayer {
          *
          * @returns childSettings For attach LWF
          */
-        public static prepareChildLwfSettings = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, lwfSetting:LwfSettings):LwfSettings => {
+        public static prepareChildLwfSettings = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:any, lwfSetting:LwfSettings):LwfSettings => {
             var childSettings = new LwfSettings();
 
             for (var i in lwfSetting) {
@@ -61,19 +60,19 @@ module LwfPlayer {
             if (Util.isNotEmpty(imageMap)) {
                 childSettings.imageMap = LwfSettings.getImageMapper(imageMap);
             } else if (privateData.hasOwnProperty("imageMap")) {
-                childSettings.imageMap = LwfSettings.getImageMapper(privateData["imageMap"]);
+                childSettings.imageMap = LwfSettings.getImageMapper(privateData.imageMap);
             }
 
             if (Util.isNotEmpty(privateData)) {
                 childSettings.privateData = privateData;
             }
 
+            childSettings.lwf = childSettings.getLwfPath(lwfName);
+            childSettings.stage = lwfSetting.stage;
             childSettings.fitForHeight = false;
             childSettings.fitForWidth = false;
             childSettings.parentLWF = lwf;
             childSettings.active = false;
-            childSettings.lwf = childSettings.getLwfPath(lwfName);
-            childSettings.stage = lwfSetting.stage;
 
             return childSettings;
         };

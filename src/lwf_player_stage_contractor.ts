@@ -248,11 +248,11 @@ module LwfPlayer {
                 this._screenStage = document.createElement("div");
             }
 
-            var pos = this._player.lwfSettings.pos;
-            if (Util.isEmpty(pos)) {
+            if (Util.isEmpty(this._player.lwfSettings.pos)) {
                 this._player.lwfSettings.initPos();
-                pos = this._player.lwfSettings.pos;
             }
+
+            var pos = this._player.lwfSettings.pos;
 
             this._screenStage.style.position = pos["position"];
             this._screenStage.style.top = pos["top"] + "px";
@@ -308,5 +308,11 @@ module LwfPlayer {
                 "sw:" + this._stageStyleWidth + " sh:" + this._stageStyleHeight +
                 " w:" + this._stageWidth + " h:" + this._stageHeight + " s:" + this._stageScale + " dpr:" + this.devicePixelRatio;
         };
+    }
+
+    export class Position {
+        public top:string;
+        public left:string;
+        public position:string;
     }
 }

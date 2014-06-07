@@ -1,7 +1,20 @@
+/**
+* Created by tdoe on 5/4/14.
+*
+* This class handling for LWF-Renderer choice.
+* will be cross-browser countermeasure.
+*
+* @type {Object}
+* @const
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
 
+    /**
+    * @type {LwfPlayer.RendererName}
+    * @const
+    */
     (function (RendererName) {
         RendererName[RendererName["useCanvasRenderer"] = 0] = "useCanvasRenderer";
         RendererName[RendererName["useWebkitCSSRenderer"] = 1] = "useWebkitCSSRenderer";
@@ -9,13 +22,30 @@ var LwfPlayer;
     })(LwfPlayer.RendererName || (LwfPlayer.RendererName = {}));
     var RendererName = LwfPlayer.RendererName;
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_renderer_name.ts"/>
+/**
+* Created by tdoe on 5/4/14.
+*
+* This class handling for LWF-Renderer choice.
+* will be cross-browser countermeasure.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
 
+    /**
+    * @type {LwfPlayer.RendererSelector}
+    * @const
+    */
     var RendererSelector = (function () {
         function RendererSelector() {
             var _this = this;
+            /**
+            * detects if current environment is WebGL capable.
+            * auto-select the optimal renderer set after.
+            * use canvas-renderer when set renderer nothing.
+            */
             this.autoSelectRenderer = function () {
                 var canvas = document.createElement("canvas");
                 var contextNames = ["webgl", "experimental-webgl"];
@@ -27,11 +57,15 @@ var LwfPlayer;
                     }
                 }
 
+                /** iOS 4 devices should use CSS renderer due to spec issue */
                 if (/iP(ad|hone|od).*OS 4/.test(LwfPlayer.Util.ua)) {
                     _this._renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
                 } else if (/Android 2\.1/.test(LwfPlayer.Util.ua) || /Android 2\.3\.[5-7]/.test(LwfPlayer.Util.ua)) {
+                    /** Android 2.1 does not work with Canvas, force to use CSS renderer */
+                    /** Android 2.3.5 or higher 2.3 versions does not work properly on canvas */
                     _this._renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
                 } else if (/Android 4/.test(LwfPlayer.Util.ua)) {
+                    /** Android 4.x devices are recommended to run with CSS renderer except for Chrome*/
                     if (/Chrome/.test(LwfPlayer.Util.ua)) {
                         _this._renderer = LwfPlayer.RendererName[0 /* useCanvasRenderer */];
                     } else {
@@ -46,9 +80,21 @@ var LwfPlayer;
             this.autoSelectRenderer();
         }
         Object.defineProperty(RendererSelector.prototype, "renderer", {
+            /**
+            * get current renderer
+            *
+            * @returns {string}
+            */
             get: function () {
                 return this._renderer;
             },
+            /**
+            * set renderer name.
+            * can use it only three types.
+            * auto-select the optimal renderer set after.
+            *
+            * @param renderer
+            */
             set: function (renderer) {
                 if (LwfPlayer.Util.isEmpty(renderer)) {
                     this.autoSelectRenderer();
@@ -75,7 +121,14 @@ var LwfPlayer;
     })();
     LwfPlayer.RendererSelector = RendererSelector;
 })(LwfPlayer || (LwfPlayer = {}));
-
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_renderer_name.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
+/**
+* Created by tdoe on 5/5/14.
+*
+* This class is for utility and Cross browser polyfills.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
@@ -100,12 +153,14 @@ var LwfPlayer;
         Util.isPreventDefaultEnabled = Util.isiOS || /Android *(4|3)\..*/.test(Util.ua);
 
         Util.forceSettingForAndroid = function (lwfSettings, renderer) {
+            /** force to disable use3D on Android devices */
             lwfSettings.use3D = false;
 
             if (lwfSettings.worker) {
                 lwfSettings.worker = Util.useWebWorker;
             }
 
+            /** handle buggy css behaviour in certain devices */
             if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) && renderer === LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]) {
                 lwfSettings.quirkyClearRect = true;
             }
@@ -164,12 +219,18 @@ var LwfPlayer;
     })();
     LwfPlayer.Util = Util;
 
+    /**
+    * "window.performance.now()" cross browser polyfills
+    */
     if (Util.isEmpty(global.performance)) {
         global.performance = {};
     }
 
     global.performance.now = global.performance.now || global.performance.webkitNow || global.performance.mozNow || global.performance.oNow || global.performance.msNow || Date.now;
 
+    /**
+    * "window.requestAnimationFrame()" cross browser polyfills
+    */
     global.requestAnimationFrame = global.requestAnimationFrame || global.webkitRequestAnimationFrame || global.mozRequestAnimationFrame || global.oRequestAnimationFrame || global.msRequestAnimationFrame;
 
     if (Util.isEmpty(global.requestAnimationFrame) || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
@@ -186,17 +247,38 @@ var LwfPlayer;
         };
     }
 
+    /**
+    * handle special behaviour of touch event on certain devices
+    */
     if (Util.isAndroid && (Util.isChrome || / SC-0/.test(Util.ua))) {
         document.body.addEventListener("touchstart", function () {
+            //nothing todo...
         });
     }
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lwf_player_renderer_name.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
 
+/**
+* Created by tdoe on 5/6/14.
+*
+* This class is for LWF animation rendering element operation.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
 
+    /**
+    * @type {LwfPlayer.StageContractor}
+    * @const
+    */
     var StageContractor = (function () {
+        /**
+        * this class is need Player instance.
+        *
+        * @param player
+        */
         function StageContractor(player) {
             var _this = this;
             this._player = null;
@@ -212,6 +294,13 @@ var LwfPlayer;
             this._stageHeight = 0;
             this._stageStyleWidth = 0;
             this._stageStyleHeight = 0;
+            /**
+            * calculation to set stage size.
+            * stage size is passed to LWF
+            *
+            * @param width  LWF width
+            * @param height LWF height
+            */
             this.changeStageSize = function (width, height) {
                 var screenWidth = LwfPlayer.Util.getStageWidth();
                 var screenHeight = LwfPlayer.Util.getStageHeight();
@@ -237,18 +326,39 @@ var LwfPlayer;
                 _this._screenStage.setAttribute("width", _this._stageWidth + "");
                 _this._screenStage.setAttribute("height", _this._stageHeight + "");
             };
+            /**
+            * calc stage size by LWF size.
+            * For fit to LWF width.
+            *
+            * @param lwfWidth
+            * @param lwfHeight
+            */
             this.fitForWidth = function (lwfWidth, lwfHeight) {
                 _this._stageStyleWidth = Math.round(lwfWidth);
                 _this._stageStyleHeight = Math.round(lwfWidth * lwfHeight / lwfWidth);
                 _this.setStageWidthAndHeight();
                 _this._stageScale = _this._stageStyleWidth / _this._stageWidth;
             };
+            /**
+            * calc stage size by LWF size.
+            * For fit to LWF height.
+            *
+            * @param lwfWidth
+            * @param lwfHeight
+            */
             this.fitForHeight = function (lwfWidth, lwfHeight) {
                 _this._stageStyleWidth = Math.round(lwfHeight * lwfWidth / lwfHeight);
                 _this._stageStyleHeight = Math.round(lwfHeight);
                 _this.setStageWidthAndHeight();
                 _this._stageScale = _this._stageStyleHeight / _this._stageHeight;
             };
+            /**
+            * calc stage size by screen-size.
+            * For full screen LWF display.
+            *
+            * @param lwfWidth
+            * @param lwfHeight
+            */
             this.fitToScreen = function (lwfWidth, lwfHeight) {
                 var screenWidth = LwfPlayer.Util.getStageWidth();
                 var screenHeight = LwfPlayer.Util.getStageHeight();
@@ -268,10 +378,17 @@ var LwfPlayer;
                     _this._stageScale = _this._stageStyleHeight / _this._stageHeight;
                 }
             };
+            /**
+            * screen stage size * devicePixelRatio for High-definition screen
+            */
             this.setStageWidthAndHeight = function () {
                 _this._stageWidth = Math.floor(_this._stageStyleWidth * _this._devicePixelRatio);
                 _this._stageHeight = Math.floor(_this._stageStyleHeight * _this._devicePixelRatio);
             };
+            /**
+            * remove event listeners
+            * call before LWF play.
+            */
             this.addEventListeners = function () {
                 if (LwfPlayer.Util.isTouchEventEnabled) {
                     _this._eventReceiveStage.addEventListener("touchmove", _this._player.onMove, false);
@@ -283,6 +400,10 @@ var LwfPlayer;
                     _this._eventReceiveStage.addEventListener("mouseup", _this._player.onRelease, false);
                 }
             };
+            /**
+            * remove event listeners
+            * call when LWF destroy.
+            */
             this.removeEventListeners = function () {
                 if (LwfPlayer.Util.isTouchEventEnabled) {
                     _this._eventReceiveStage.removeEventListener("touchstart", _this._player.onPress, false);
@@ -294,6 +415,10 @@ var LwfPlayer;
                     _this._eventReceiveStage.removeEventListener("mouseup", _this._player.onRelease, false);
                 }
             };
+            /**
+            * create LWF animation rendering element.
+            * @param rendererSelector
+            */
             this.createScreenStage = function (rendererSelector) {
                 if (rendererSelector.renderer === LwfPlayer.RendererName[0 /* useCanvasRenderer */] || rendererSelector.renderer === LwfPlayer.RendererName[2 /* useWebGLRenderer */]) {
                     _this._screenStage = document.createElement("canvas");
@@ -301,11 +426,11 @@ var LwfPlayer;
                     _this._screenStage = document.createElement("div");
                 }
 
-                var pos = _this._player.lwfSettings.pos;
-                if (LwfPlayer.Util.isEmpty(pos)) {
+                if (LwfPlayer.Util.isEmpty(_this._player.lwfSettings.pos)) {
                     _this._player.lwfSettings.initPos();
-                    pos = _this._player.lwfSettings.pos;
                 }
+
+                var pos = _this._player.lwfSettings.pos;
 
                 _this._screenStage.style.position = pos["position"];
                 _this._screenStage.style.top = pos["top"] + "px";
@@ -315,6 +440,9 @@ var LwfPlayer;
 
                 _this._targetStage.appendChild(_this._screenStage);
             };
+            /**
+            * create mouse or touch event receive element.
+            */
             this.createEventReceiveStage = function () {
                 var pos = _this._player.lwfSettings.pos;
 
@@ -325,6 +453,9 @@ var LwfPlayer;
                 _this._eventReceiveStage.style.zIndex = _this._screenStage.style.zIndex + 1;
                 _this._targetStage.appendChild(_this._eventReceiveStage);
             };
+            /**
+            * Display debug information.
+            */
             this.viewDebugInfo = function () {
                 if (LwfPlayer.Util.isEmpty(_this._debugInfo)) {
                     _this._debugInfo = document.createElement("div");
@@ -355,6 +486,7 @@ var LwfPlayer;
 
             this._targetStage = this._player.playerSettings.targetStage;
 
+            // prepare LWF stage
             if (this._targetStage.style.position === "static" || LwfPlayer.Util.isEmpty(this._targetStage.style.position)) {
                 this._targetStage.style.position = "relative";
             }
@@ -363,6 +495,7 @@ var LwfPlayer;
                 this._devicePixelRatio = 1;
             }
 
+            /* set DPR to 2 when running  WebGLRenderer on ARROWS F-series device */
             if (this._player.rendererSelector.renderer === LwfPlayer.RendererName[2 /* useWebGLRenderer */] && / F-/.test(LwfPlayer.Util.ua)) {
                 this._devicePixelRatio = 2;
             }
@@ -372,6 +505,11 @@ var LwfPlayer;
             }
         }
         Object.defineProperty(StageContractor.prototype, "devicePixelRatio", {
+            /**
+            * get devicePixelRatio.
+            *
+            * @returns {number}
+            */
             get: function () {
                 return this._devicePixelRatio;
             },
@@ -380,6 +518,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(StageContractor.prototype, "stageScale", {
+            /**
+            * get screen stage scale.
+            *
+            * @returns {number}
+            */
             get: function () {
                 return this._stageScale;
             },
@@ -388,6 +531,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(StageContractor.prototype, "screenStage", {
+            /**
+            * get screen stage element.
+            *
+            * @returns {HTMLElement}
+            */
             get: function () {
                 return this._screenStage;
             },
@@ -396,6 +544,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(StageContractor.prototype, "screenStageWidth", {
+            /**
+            * get screen width by number convert string.
+            *
+            * @returns {number}
+            */
             get: function () {
                 return +this._screenStage.getAttribute("width");
             },
@@ -404,6 +557,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(StageContractor.prototype, "screenStageHeight", {
+            /**
+            * get screen height by number convert string.
+            *
+            * @returns {number}
+            */
             get: function () {
                 return +this._screenStage.getAttribute("height");
             },
@@ -413,16 +571,54 @@ var LwfPlayer;
         return StageContractor;
     })();
     LwfPlayer.StageContractor = StageContractor;
-})(LwfPlayer || (LwfPlayer = {}));
 
+    var Position = (function () {
+        function Position() {
+        }
+        return Position;
+    })();
+    LwfPlayer.Position = Position;
+})(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_stage_contractor.ts"/>
+/**
+* Created by tdoe on 5/5/14.
+*
+* this class is the coordinate handler.
+* coordinate input from mouse or touch.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     var Coordinator = (function () {
+        /**
+        * this class is need StageContractor instance.
+        *
+        * @param stageContractor
+        */
         function Coordinator(stageContractor) {
             var _this = this;
+            /**
+            * X coordinate
+            */
             this._x = 0;
+            /**
+            * Y coordinate
+            */
             this._y = 0;
+            /**
+            * For event.preventDefault() execution check.
+            * default is LwfPlayer.Util.isPreventDefaultEnabled.
+            *
+            * @see LwfPlayer.Util.isPreventDefaultEnabled
+            */
             this._isPreventDefaultEnabled = LwfPlayer.Util.isPreventDefaultEnabled;
+            /**
+            * set coordinate by mouse or touch event input.
+            * wrapping of mouse, touch and LWF stage size.
+            *
+            * @param event
+            */
             this.setCoordinate = function (event) {
                 if (_this._isPreventDefaultEnabled) {
                     event.preventDefault();
@@ -453,6 +649,11 @@ var LwfPlayer;
             this._stageContractor = stageContractor;
         }
         Object.defineProperty(Coordinator.prototype, "preventDefaultEnabled", {
+            /**
+            * force set isPreventDefaultEnabled.
+            *
+            * @param isPreventDefaultEnabled
+            */
             set: function (isPreventDefaultEnabled) {
                 this._isPreventDefaultEnabled = isPreventDefaultEnabled;
             },
@@ -461,6 +662,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(Coordinator.prototype, "x", {
+            /**
+            * From mouse or touch event get X coordinate.
+            *
+            * @returns _x
+            */
             get: function () {
                 return this._x;
             },
@@ -469,6 +675,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(Coordinator.prototype, "y", {
+            /**
+            * From mouse or touch event get Y coordinate.
+            *
+            * @returns _y
+            */
             get: function () {
                 return this._y;
             },
@@ -479,7 +690,15 @@ var LwfPlayer;
     })();
     LwfPlayer.Coordinator = Coordinator;
 })(LwfPlayer || (LwfPlayer = {}));
-
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_lwf_settings.ts"/>
+/// <reference path="lwf_player.ts"/>
+/**
+* Created by tdoe on 5/9/14.
+*
+* This class is for For backward compatibility lwf-loader.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
@@ -489,6 +708,7 @@ var LwfPlayer;
         }
         LwfLoader.getLwfPath = function (lwfName) {
             var _lwfName = lwfName;
+
             if (lwfName.indexOf("/") >= 0) {
                 _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
             }
@@ -497,7 +717,7 @@ var LwfPlayer;
         };
 
         LwfLoader.setLoader = function (player, lwfSettings) {
-            lwfSettings.privateData["lwfLoader"] = player;
+            lwfSettings.privateData.lwfLoader = player;
         };
 
         LwfLoader.prepareChildLwfSettings = function (lwf, lwfName, imageMap, privateData, lwfSetting) {
@@ -512,19 +732,19 @@ var LwfPlayer;
             if (LwfPlayer.Util.isNotEmpty(imageMap)) {
                 childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(imageMap);
             } else if (privateData.hasOwnProperty("imageMap")) {
-                childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(privateData["imageMap"]);
+                childSettings.imageMap = LwfPlayer.LwfSettings.getImageMapper(privateData.imageMap);
             }
 
             if (LwfPlayer.Util.isNotEmpty(privateData)) {
                 childSettings.privateData = privateData;
             }
 
+            childSettings.lwf = childSettings.getLwfPath(lwfName);
+            childSettings.stage = lwfSetting.stage;
             childSettings.fitForHeight = false;
             childSettings.fitForWidth = false;
             childSettings.parentLWF = lwf;
             childSettings.active = false;
-            childSettings.lwf = childSettings.getLwfPath(lwfName);
-            childSettings.stage = lwfSetting.stage;
 
             return childSettings;
         };
@@ -532,6 +752,20 @@ var LwfPlayer;
     })();
     LwfPlayer.LwfLoader = LwfLoader;
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lib/params.d.ts" />
+/// <reference path="lwf_player.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
+/// <reference path="lwf_player_lwf_loader.ts"/>
+/**
+* Created by tdoe on 5/5/14.
+*
+* This class is LWF parameter setting class.
+*
+* Child LWF can use this class instance,
+* but a do not use the same instance in other children.
+* because configuration conflict occurs.
+* If you are in need of the same setting, use a deep copy object.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
@@ -539,18 +773,30 @@ var LwfPlayer;
     var LwfSettings = (function () {
         function LwfSettings() {
             var _this = this;
+            this.pos = {};
+            /**
+            * validation check this instance.
+            */
             this.validationLwfSettings = function () {
                 if (LwfPlayer.Util.isEmpty(_this.lwf)) {
                     throw new Error("lwf property is require.");
                 }
             };
+            /**
+            * initialized pos property.
+            */
             this.initPos = function () {
                 _this.pos = {
-                    "position": "absolute",
                     "top": 0,
-                    "left": 0
+                    "left": 0,
+                    "position": "absolute"
                 };
             };
+            /**
+            * require members init.
+            *
+            * @param player
+            */
             this.prepareLwfSettings = function (player) {
                 if (LwfPlayer.Util.isEmpty(_this.privateData)) {
                     _this.privateData = {};
@@ -571,6 +817,13 @@ var LwfPlayer;
 
                 LwfPlayer.LwfLoader.setLoader(player, _this);
             };
+            /**
+            * return LWF file path.
+            *
+            * @param lwfName LWF name.
+            *
+            * @returns {string|Function} LWF file path.
+            */
             this.getLwfPath = function (lwfName) {
                 if (LwfPlayer.Util.isNotEmpty(_this.lwfMap)) {
                     if (_this.lwfMap instanceof Function) {
@@ -604,11 +857,33 @@ var LwfPlayer;
     })();
     LwfPlayer.LwfSettings = LwfSettings;
 })(LwfPlayer || (LwfPlayer = {}));
+/// <reference path="lwf_player_util.ts"/>
+/**
+* Created by tdoe on 5/6/14.
+*
+* this class is LwfPlayer.Player setting definition.
+*
+* renderer
+*  "canvas" or "csswebkit" or "webgl"
+*
+* debug
+*  true or false
+*
+* targetStage
+*  append the LWF animation rendering element.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
+    /**
+    * @type {Object}
+    * @const
+    */
     var PlayerSettings = (function () {
         function PlayerSettings() {
             var _this = this;
+            /**
+            * check this instance status.
+            */
             this.validationPlayerSettings = function () {
                 if (LwfPlayer.Util.isEmpty(_this.targetStage)) {
                     throw new Error("targetStage property is need HTMLElement");
@@ -617,9 +892,17 @@ var LwfPlayer;
         }
 
         Object.defineProperty(PlayerSettings.prototype, "renderer", {
+            /**
+            * @const
+            * @returns {string}
+            */
             get: function () {
                 return this._renderer;
             },
+            /**
+            * @const
+            * @param renderer
+            */
             set: function (renderer) {
                 this._renderer = renderer;
             },
@@ -629,9 +912,17 @@ var LwfPlayer;
 
 
         Object.defineProperty(PlayerSettings.prototype, "isDebugMode", {
+            /**
+            * @const
+            * @returns {boolean}
+            */
             get: function () {
                 return this._isDebugMode;
             },
+            /**
+            * @const
+            * @param isDebugMode
+            */
             set: function (isDebugMode) {
                 this._isDebugMode = isDebugMode;
             },
@@ -641,9 +932,17 @@ var LwfPlayer;
 
 
         Object.defineProperty(PlayerSettings.prototype, "targetStage", {
+            /**
+            * @const
+            * @returns {HTMLElement}
+            */
             get: function () {
                 return this._targetStage;
             },
+            /**
+            * @const
+            * @param targetStage
+            */
             set: function (targetStage) {
                 this._targetStage = targetStage;
             },
@@ -654,27 +953,57 @@ var LwfPlayer;
     })();
     LwfPlayer.PlayerSettings = PlayerSettings;
 })(LwfPlayer || (LwfPlayer = {}));
-
+/// <reference path="lib/lwf.d.ts"/>
+/// <reference path="lib/params.d.ts"/>
+/// <reference path="lwf_player_renderer_name.ts"/>
+/// <reference path="lwf_player_util.ts"/>
+/// <reference path="lwf_player_coordinator.ts"/>
+/// <reference path="lwf_player_lwf_settings.ts"/>
+/// <reference path="lwf_player_player_settings.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
+/// <reference path="lwf_player_stage_contractor.ts"/>
+/**
+* Created by tdoe on 5/5/14.
+*
+* This class is LwfPlayer main class.
+* using other LwfPlayer.* class, control LWF animation.
+*/
 var LwfPlayer;
 (function (LwfPlayer) {
     "use strict";
 
+    /**
+    * @type {LwfPlayer.Player}
+    * @const
+    */
     var Player = (function () {
+        /**
+        * initialize this Player.
+        *
+        * @param playerSettings Require targetStage:HTMLElement.
+        * @param lwfSettings    Require lwf:load LWF path.
+        */
         function Player(playerSettings, lwfSettings) {
             var _this = this;
+            // fromTime LWF members.
             this._lwf = null;
             this._cache = null;
+            // LwfPlayer module classes members.
             this._playerSettings = null;
             this._lwfSettings = new LwfPlayer.LwfSettings();
             this._stageContractor = null;
             this._coordinator = null;
             this._rendererSelector = new LwfPlayer.RendererSelector();
+            // this class only members.
             this._inputQueue = [];
             this._fromTime = global.performance.now();
             this._pausing = false;
             this._goPlayBack = false;
             this._destroyed = false;
             this._goRestart = false;
+            /**
+            * load and play LWF.
+            */
             this.play = function () {
                 _this.initStage();
                 _this.initLwf();
@@ -683,15 +1012,30 @@ var LwfPlayer;
 
                 _this._cache.loadLWF(_this._lwfSettings);
             };
+            /**
+            * stop lwf animation.
+            */
             this.pause = function () {
                 _this._pausing = true;
             };
+            /**
+            * start lwf animation fromTime pause state.
+            */
             this.resume = function () {
                 _this._pausing = false;
             };
+            /**
+            * LWF play back from beginning.
+            */
             this.playBack = function () {
                 _this._goPlayBack = true;
             };
+            /**
+            * Restart LWF by same player instance.
+            * using same stage and renderer.
+            *
+            * @param lwfSettings
+            */
             this.reStart = function (lwfSettings) {
                 _this._goRestart = true;
 
@@ -700,21 +1044,40 @@ var LwfPlayer;
                 _this._lwfSettings.prepareLwfSettings(_this);
                 _this._cache.loadLWF(_this._lwfSettings);
             };
+            /**
+            * Caution! stop animation, and destroy LWF instance .
+            */
             this.destroy = function () {
                 _this._destroyed = true;
             };
+            /**
+            * handle load error.
+            * can run the error handler that was passed.
+            * It is recommended to pass handler["loadError"] function.
+            */
             this.handleLoadError = function () {
                 if (_this._lwfSettings.handler && _this._lwfSettings.handler["loadError"] instanceof Function) {
                     _this._lwfSettings.handler["loadError"](_this._lwfSettings.error);
                 }
                 console.error("[LWF] load error: %o", _this._lwfSettings.error);
             };
+            /**
+            * handle exception.
+            * can run the Exception handler that was passed.
+            * It is recommended to pass handler["exception"] function.
+            *
+            * @param exception
+            */
             this.handleException = function (exception) {
                 if (_this._lwfSettings.handler && _this._lwfSettings.handler["exception"] instanceof Function) {
                     _this._lwfSettings.handler["exception"](exception);
                 }
                 console.error("[LWF] load Exception: %o", exception);
             };
+            /**
+            * exec LWF rendering, and dispatch events.
+            * It is loop by requestAnimationFrame.
+            */
             this.exec = function () {
                 try  {
                     if (_this._goRestart) {
@@ -747,6 +1110,9 @@ var LwfPlayer;
                     _this.handleException(e);
                 }
             };
+            /**
+            * initialize LWF animation screen stage, and coordinate class.
+            */
             this.initStage = function () {
                 _this._stageContractor = new LwfPlayer.StageContractor(_this);
                 _this._stageContractor.createScreenStage(_this._rendererSelector);
@@ -754,6 +1120,10 @@ var LwfPlayer;
                 _this._stageContractor.addEventListeners();
                 _this._coordinator = new LwfPlayer.Coordinator(_this._stageContractor);
             };
+            /**
+            * Initialize LWF resources.
+            * select LWF renderer, and get LWF resource cache.
+            */
             this.initLwf = function () {
                 try  {
                     switch (_this._rendererSelector.renderer) {
@@ -778,6 +1148,9 @@ var LwfPlayer;
                     _this.handleException(e);
                 }
             };
+            /**
+            * Call LWF rendering processes.
+            */
             this.renderLwf = function () {
                 var stageWidth = _this._stageContractor.screenStageWidth;
                 var stageHeight = _this._stageContractor.screenStageHeight;
@@ -805,6 +1178,9 @@ var LwfPlayer;
                     _this._stageContractor.viewDebugInfo();
                 }
             };
+            /**
+            * destroy LWF resource and remove event listener.
+            */
             this.destroyLwf = function () {
                 if (LwfPlayer.Util.isNotEmpty(_this._lwf)) {
                     _this._stageContractor.removeEventListeners();
@@ -816,6 +1192,12 @@ var LwfPlayer;
                 }
                 console.log("LWF is destroyed.");
             };
+            /**
+            * check args property, set the instance member.
+            *
+            * @param playerSettings
+            * @param lwfSettings
+            */
             this.setSettingsAndValidation = function (playerSettings, lwfSettings) {
                 if (LwfPlayer.Util.isEmpty(playerSettings) || LwfPlayer.Util.isEmpty(lwfSettings)) {
                     throw new Error("not enough argument.");
@@ -831,29 +1213,59 @@ var LwfPlayer;
                 _this._lwfSettings = lwfSettings;
                 _this._lwfSettings.validationLwfSettings();
             };
+            /**
+            * pass the coordinates to LWF from mouse or touch event.
+            *
+            * @param e
+            */
             this.inputPoint = function (e) {
                 _this._coordinator.setCoordinate(e);
                 _this._lwf.inputPoint(_this._coordinator.x, _this._coordinator.y);
             };
+            /**
+            * pass the coordinates and input to LWF from mouse or touch event.
+            *
+            * @param e
+            */
             this.inputPress = function (e) {
                 _this.inputPoint(e);
                 _this._lwf.inputPress();
             };
+            /**
+            * push queue the mouse or touch coordinates.
+            *
+            * @param e
+            */
             this.onMove = function (e) {
                 _this._inputQueue.push(function () {
                     this.inputPoint(e);
                 });
             };
+            /**
+            * push queue the press by mouse or touch coordinates.
+            *
+            * @param e
+            */
             this.onPress = function (e) {
                 _this._inputQueue.push(function () {
                     this.inputPress(e);
                 });
             };
+            /**
+            * push queue the release by mouse or touch coordinates.
+            *
+            * @param e
+            */
             this.onRelease = function (e) {
                 _this._inputQueue.push(function () {
                     this._lwf.inputRelease();
                 });
             };
+            /**
+            * onload call back by LWF.
+            *
+            * @param lwf
+            */
             this.onLoad = function (lwf) {
                 if (LwfPlayer.Util.isNotEmpty(lwf)) {
                     _this._lwf = lwf;
@@ -862,6 +1274,19 @@ var LwfPlayer;
                     _this.handleLoadError();
                 }
             };
+            /**
+            *  called by external LWF.
+            *  Load external LWF resource to attach on current running LWF.
+            *  For backward compatibility lwf-loader.
+            *
+            * @param lwf         parent LWF instance.
+            * @param lwfName     child-LWF ID.
+            * @param imageMap    for child-LWF imageMap object or function.
+            * @param privateData for child-LWF object.
+            * @param callback    callback to return attach LWF instance.
+            *
+            * @see https://github.com/gree/lwf-loader
+            */
             this.loadLWF = function (lwf, lwfName, imageMap, privateData, callback) {
                 var childSettings = LwfPlayer.LwfLoader.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData, _this._lwfSettings);
                 childSettings.onload = function (childLwf) {
@@ -878,6 +1303,11 @@ var LwfPlayer;
             this._rendererSelector.renderer = this._playerSettings.renderer;
         }
         Object.defineProperty(Player.prototype, "coordinator", {
+            /**
+            * return player using LwfPlayer.Coordinator instance.
+            *
+            * @returns LwfPlayer.Coordinator
+            */
             get: function () {
                 return this._coordinator;
             },
@@ -886,6 +1316,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(Player.prototype, "playerSettings", {
+            /**
+            * return player using LwfPlayer.PlayerSettings instance.
+            *
+            * @returns LwfPlayer.PlayerSettings
+            */
             get: function () {
                 return this._playerSettings;
             },
@@ -894,6 +1329,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(Player.prototype, "lwfSettings", {
+            /**
+            * return player using LwfPlayer.LwfSettings instance.
+            *
+            * @returns LwfPlayer.LwfSettings
+            */
             get: function () {
                 return this._lwfSettings;
             },
@@ -902,6 +1342,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(Player.prototype, "rendererSelector", {
+            /**
+            * return player using LwfPlayer.RendererSelector instance.
+            *
+            * @returns LwfPlayer.RendererSelector
+            */
             get: function () {
                 return this._rendererSelector;
             },
@@ -910,6 +1355,11 @@ var LwfPlayer;
         });
 
         Object.defineProperty(Player.prototype, "stageContractor", {
+            /**
+            * return player using LwfPlayer.StageContractor instance.
+            *
+            * @returns LwfPlayer.StageContractor
+            */
             get: function () {
                 return this._stageContractor;
             },

@@ -1,3 +1,9 @@
+/// <reference path="lib/params.d.ts" />
+
+/// <reference path="lwf_player.ts"/>
+/// <reference path="lwf_player_renderer_selector.ts"/>
+/// <reference path="lwf_player_lwf_loader.ts"/>
+
 /**
  * Created by tdoe on 5/5/14.
  *
@@ -8,11 +14,6 @@
  * because configuration conflict occurs.
  * If you are in need of the same setting, use a deep copy object.
  */
-
-    /// <reference path="lwf_player.ts"/>
-    /// <reference path="lwf_player_renderer_selector.ts"/>
-    /// <reference path="lwf_player_lwf_loader.ts"/>
-
 module LwfPlayer {
 
     "use strict";
@@ -53,10 +54,10 @@ module LwfPlayer {
 
         public pageTransitionMap:any;
         public parentLWF:Object;
-        public pos:Object;
+        public pos:{[index:string]: any} = {};
         public preferredFrameRate:Object;
         public prefix:string;
-        public privateData:Object;
+        public privateData:any;
 
         public quirkyClearRect:any;
 
@@ -89,9 +90,9 @@ module LwfPlayer {
          */
         public initPos = () => {
             this.pos = {
-                "position": "absolute",
                 "top"     : 0,
-                "left"    : 0
+                "left"    : 0,
+                "position": "absolute"
             };
         };
 
@@ -166,5 +167,10 @@ module LwfPlayer {
 
             return LwfLoader.getLwfPath(lwfName);
         };
+
+        // for tsc "Index signature of object type implicitly has an 'any' type"
+        // or (<any>obj)[i] = (<any>obj)[i];
+    [index: string]: any;
+    [index: number]: any;
     }
 }

@@ -19,21 +19,27 @@ module.exports = function (grunt) {
                 }
             },
             typescript: {
-                base: {
+                main: {
                     src: ["src/**/*.ts"],
                     dest: "js/lwf_player.js",
                     options: {
+                        noImplicitAny: true,
+                        module: "commonjs",
                         target: "es5",
                         basePath: "src",
                         sourceMap: true,
-                        declaration: true
+                        declaration: true,
+                        comments: true
                     }
                 },
                 dev: {
                     src: ["src/**/*.ts"],
                     dest: "sample/js/lwf_player.js",
                     options: {
-                        target: "es5"
+                        noImplicitAny: true,
+                        module: "commonjs",
+                        target: "es5",
+                        comments: true
                     }
                 }
             },
@@ -92,10 +98,10 @@ module.exports = function (grunt) {
     }
 
     grunt.registerTask("default", [ "watch" ]);
-    grunt.registerTask("build", [ "tslint", "typescript:base", "jasmine", "uglify:minify" ]);
+    grunt.registerTask("build", [ "tslint", "typescript:main", "jasmine", "uglify:minify" ]);
 
-    grunt.registerTask("test", [ "typescript:base", "jasmine"]);
-    grunt.registerTask("iOS_test", [ "typescript:base", "jasmine:iOS" ]);
-    grunt.registerTask("Android_test", [ "typescript:base", "jasmine:Android" ]);
+    grunt.registerTask("test", [ "typescript:main", "jasmine"]);
+    grunt.registerTask("iOS_test", [ "typescript:main", "jasmine:iOS" ]);
+    grunt.registerTask("Android_test", [ "typescript:main", "jasmine:Android" ]);
 }
 ;
