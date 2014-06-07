@@ -11,22 +11,23 @@
 declare var global:any; // window or worker assigned by LWF
 
 module LwfPlayer {
+
     export class Coordinator {
 
         /**
          * X coordinate
          */
-        private x:number = 0;
+        private _x:number = 0;
 
         /**
          * Y coordinate
          */
-        private y:number = 0;
+        private _y:number = 0;
 
         /**
          * for need to know HTMLElement size and BoundingClientRect.
          */
-        private stageContractor:StageContractor;
+        private _stageContractor:StageContractor;
 
         /**
          * For event.preventDefault() execution check.
@@ -34,7 +35,7 @@ module LwfPlayer {
          *
          * @see LwfPlayer.Util.isPreventDefaultEnabled
          */
-        private isPreventDefaultEnabled:boolean = Util.isPreventDefaultEnabled;
+        private _isPreventDefaultEnabled:boolean = Util.isPreventDefaultEnabled;
 
         /**
          * this class is need StageContractor instance.
@@ -42,7 +43,7 @@ module LwfPlayer {
          * @param stageContractor
          */
         constructor(stageContractor:StageContractor) {
-            this.stageContractor = stageContractor;
+            this._stageContractor = stageContractor;
         }
 
         /**
@@ -50,8 +51,8 @@ module LwfPlayer {
          *
          * @param isPreventDefaultEnabled
          */
-        public setIsPreventDefaultEnabled(isPreventDefaultEnabled:boolean):void {
-            this.isPreventDefaultEnabled = isPreventDefaultEnabled;
+        public set preventDefaultEnabled(isPreventDefaultEnabled:boolean) {
+            this._isPreventDefaultEnabled = isPreventDefaultEnabled;
         }
 
         /**
@@ -60,50 +61,50 @@ module LwfPlayer {
          *
          * @param event
          */
-        public setCoordinate(event:any):void {
-            if (this.isPreventDefaultEnabled) {
+        public setCoordinate = (event:any):void => {
+            if (this._isPreventDefaultEnabled) {
                 event.preventDefault();
             }
 
-            var stageRect = this.stageContractor.getScreenStage().getBoundingClientRect();
-            var stageScale = this.stageContractor.getStageScale();
+            var stageRect = this._stageContractor.screenStage.getBoundingClientRect();
+            var stageScale = this._stageContractor.stageScale;
 
             if (Util.isTouchEventEnabled) {
-                this.x = event.touches[0].pageX;
-                this.y = event.touches[0].pageY;
+                this._x = event.touches[0].pageX;
+                this._y = event.touches[0].pageY;
             } else {
-                this.x = event.clientX;
-                this.y = event.clientY;
+                this._x = event.clientX;
+                this._y = event.clientY;
             }
 
-            this.x -= stageRect.left;
-            this.y -= stageRect.top;
+            this._x -= stageRect.left;
+            this._y -= stageRect.top;
 
             if (Util.isSp) {
-                this.x -= global.scrollX;
-                this.y -= global.scrollY;
+                this._x -= global.scrollX;
+                this._y -= global.scrollY;
             }
 
-            this.x /= stageScale;
-            this.y /= stageScale;
-        }
+            this._x /= stageScale;
+            this._y /= stageScale;
+        };
 
         /**
          * From mouse or touch event get X coordinate.
          *
-         * @returns x
+         * @returns _x
          */
-        public getX():number {
-            return this.x;
+        public get x():number {
+            return this._x;
         }
 
         /**
          * From mouse or touch event get Y coordinate.
          *
-         * @returns y
+         * @returns _y
          */
-        public getY():number {
-            return this.y;
+        public get y():number {
+            return this._y;
         }
     }
 }

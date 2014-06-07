@@ -25,18 +25,18 @@ module LwfPlayer {
          *
          * @returns {string} LWF file path.
          */
-        public static getLwfPath(lwfName:string):string {
+        public static getLwfPath = (lwfName:string):string => {
             var _lwfName = lwfName;
             if (lwfName.indexOf("/") >= 0) {
                 _lwfName = lwfName.substring(lwfName.lastIndexOf("/") + 1);
             }
 
             return lwfName + "/_/" + _lwfName + ".lwf";
-        }
+        };
 
-        public static setLoader(player:Player, lwfSettings:LwfSettings) {
+        public static setLoader = (player:Player, lwfSettings:LwfSettings) => {
             lwfSettings.privateData["lwfLoader"] = player;
-        }
+        };
 
         /**
          * For backward compatibility lwf-loader.
@@ -49,7 +49,7 @@ module LwfPlayer {
          *
          * @returns childSettings For attach LWF
          */
-        public static prepareChildLwfSettings(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, lwfSetting:LwfSettings):LwfSettings {
+        public static prepareChildLwfSettings = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, lwfSetting:LwfSettings):LwfSettings => {
             var childSettings = new LwfSettings();
 
             for (var i in lwfSetting) {
@@ -76,6 +76,6 @@ module LwfPlayer {
             childSettings.stage = lwfSetting.stage;
 
             return childSettings;
-        }
+        };
     }
 }

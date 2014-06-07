@@ -78,29 +78,29 @@ module LwfPlayer {
         /**
          * validation check this instance.
          */
-        public validationLwfSettings() {
+        public validationLwfSettings = () => {
             if (Util.isEmpty(this.lwf)) {
                 throw new Error("lwf property is require.");
             }
-        }
+        };
 
         /**
          * initialized pos property.
          */
-        public initPos() {
+        public initPos = () => {
             this.pos = {
                 "position": "absolute",
                 "top"     : 0,
                 "left"    : 0
             };
-        }
+        };
 
         /**
          * require members init.
          *
          * @param player
          */
-        public prepareLwfSettings(player:Player):void {
+        public prepareLwfSettings = (player:Player):void => {
             if (Util.isEmpty(this.privateData)) {
                 this.privateData = {};
             }
@@ -109,17 +109,17 @@ module LwfPlayer {
                 this.useBackgroundColor = true;
             }
 
-            this.stage = player.getStageContractor().getScreenStage();
+            this.stage = player.stageContractor.screenStage;
             this.imageMap = LwfSettings.getImageMapper(this.imageMap);
 
             if (Util.isAndroid) {
-                Util.forceSettingForAndroid(this, player.getRendererSelector().getRenderer());
+                Util.forceSettingForAndroid(this, player.rendererSelector.renderer);
             }
 
             this.onload = player.onLoad;
 
             LwfLoader.setLoader(player, this);
-        }
+        };
 
         /**
          * Generates function that takes image name as an input and returns the path corresponding to it.
@@ -130,18 +130,18 @@ module LwfPlayer {
          *
          * @return function to replace path by maps
          */
-        public static getImageMapper(imageMap:any):Function {
+        public static getImageMapper = (imageMap:any):Function => {
             if (imageMap instanceof Function) {
                 return imageMap;
             }
 
-            return function (pImageId:string) {
+            return (pImageId:string) => {
                 if (imageMap && imageMap.hasOwnProperty(pImageId)) {
                     return imageMap[pImageId];
                 }
                 return pImageId;
             };
-        }
+        };
 
         /**
          * return LWF file path.
@@ -150,7 +150,7 @@ module LwfPlayer {
          *
          * @returns {string|Function} LWF file path.
          */
-        public getLwfPath(lwfName:string):any {
+        public getLwfPath = (lwfName:string):any => {
             if (Util.isNotEmpty(this.lwfMap)) {
                 if (this.lwfMap instanceof Function) {
                     return this.lwfMap(lwfName);
@@ -165,6 +165,6 @@ module LwfPlayer {
             }
 
             return LwfLoader.getLwfPath(lwfName);
-        }
+        };
     }
 }

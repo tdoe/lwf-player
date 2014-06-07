@@ -15,58 +15,62 @@ var LwfPlayer;
 
     var RendererSelector = (function () {
         function RendererSelector() {
+            var _this = this;
+            this.autoSelectRenderer = function () {
+                var canvas = document.createElement("canvas");
+                var contextNames = ["webgl", "experimental-webgl"];
+
+                for (var i = 0; i < contextNames.length; i++) {
+                    if (canvas.getContext(contextNames[i])) {
+                        _this._renderer = LwfPlayer.RendererName[2 /* useWebGLRenderer */];
+                        break;
+                    }
+                }
+
+                if (/iP(ad|hone|od).*OS 4/.test(LwfPlayer.Util.ua)) {
+                    _this._renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
+                } else if (/Android 2\.1/.test(LwfPlayer.Util.ua) || /Android 2\.3\.[5-7]/.test(LwfPlayer.Util.ua)) {
+                    _this._renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
+                } else if (/Android 4/.test(LwfPlayer.Util.ua)) {
+                    if (/Chrome/.test(LwfPlayer.Util.ua)) {
+                        _this._renderer = LwfPlayer.RendererName[0 /* useCanvasRenderer */];
+                    } else {
+                        _this._renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
+                    }
+                }
+
+                if (LwfPlayer.Util.isEmpty(_this._renderer)) {
+                    _this._renderer = LwfPlayer.RendererName[0 /* useCanvasRenderer */];
+                }
+            };
             this.autoSelectRenderer();
         }
-        RendererSelector.prototype.getRenderer = function () {
-            return this.renderer;
-        };
+        Object.defineProperty(RendererSelector.prototype, "renderer", {
+            get: function () {
+                return this._renderer;
+            },
+            set: function (renderer) {
+                if (LwfPlayer.Util.isEmpty(renderer)) {
+                    this.autoSelectRenderer();
+                    return;
+                }
 
-        RendererSelector.prototype.setRenderer = function (playerSettings) {
-            if (LwfPlayer.Util.isEmpty(playerSettings.renderer)) {
+                switch (renderer) {
+                    case LwfPlayer.RendererName[0 /* useCanvasRenderer */]:
+                    case LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]:
+                    case LwfPlayer.RendererName[2 /* useWebGLRenderer */]:
+                        this._renderer = renderer;
+                        break;
+                    default:
+                        throw new Error("unsupported renderer:" + renderer);
+                }
+
                 this.autoSelectRenderer();
-                return;
-            }
+            },
+            enumerable: true,
+            configurable: true
+        });
 
-            switch (playerSettings.renderer) {
-                case LwfPlayer.RendererName[0 /* useCanvasRenderer */]:
-                case LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]:
-                case LwfPlayer.RendererName[2 /* useWebGLRenderer */]:
-                    this.renderer = playerSettings.renderer;
-                    break;
-                default:
-                    throw new Error("unsupported renderer:" + playerSettings.renderer);
-            }
-
-            this.autoSelectRenderer();
-        };
-
-        RendererSelector.prototype.autoSelectRenderer = function () {
-            var canvas = document.createElement("canvas");
-            var contextNames = ["webgl", "experimental-webgl"];
-
-            for (var i = 0; i < contextNames.length; i++) {
-                if (canvas.getContext(contextNames[i])) {
-                    this.renderer = LwfPlayer.RendererName[2 /* useWebGLRenderer */];
-                    break;
-                }
-            }
-
-            if (/iP(ad|hone|od).*OS 4/.test(LwfPlayer.Util.ua)) {
-                this.renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
-            } else if (/Android 2\.1/.test(LwfPlayer.Util.ua) || /Android 2\.3\.[5-7]/.test(LwfPlayer.Util.ua)) {
-                this.renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
-            } else if (/Android 4/.test(LwfPlayer.Util.ua)) {
-                if (/Chrome/.test(LwfPlayer.Util.ua)) {
-                    this.renderer = LwfPlayer.RendererName[0 /* useCanvasRenderer */];
-                } else {
-                    this.renderer = LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */];
-                }
-            }
-
-            if (LwfPlayer.Util.isEmpty(this.renderer)) {
-                this.renderer = LwfPlayer.RendererName[0 /* useCanvasRenderer */];
-            }
-        };
         return RendererSelector;
     })();
     LwfPlayer.RendererSelector = RendererSelector;
@@ -79,6 +83,22 @@ var LwfPlayer;
     var Util = (function () {
         function Util() {
         }
+        Util.ua = global.navigator.userAgent;
+
+        Util.isiOS = /iP(ad|hone|od)/.test(Util.ua);
+
+        Util.isAndroid = (/Android/.test(Util.ua));
+
+        Util.isSp = Util.isiOS || Util.isAndroid;
+
+        Util.isChrome = /Chrome/.test(Util.ua);
+
+        Util.isTouchEventEnabled = Util.isSp;
+
+        Util.useWebWorker = !Util.isAndroid || Util.isChrome;
+
+        Util.isPreventDefaultEnabled = Util.isiOS || /Android *(4|3)\..*/.test(Util.ua);
+
         Util.forceSettingForAndroid = function (lwfSettings, renderer) {
             lwfSettings.use3D = false;
 
@@ -140,21 +160,6 @@ var LwfPlayer;
         Util.isNotEmpty = function (arg) {
             return !Util.isEmpty(arg);
         };
-        Util.ua = global.navigator.userAgent;
-
-        Util.isiOS = /iP(ad|hone|od)/.test(Util.ua);
-
-        Util.isAndroid = (/Android/.test(Util.ua));
-
-        Util.isSp = Util.isiOS || Util.isAndroid;
-
-        Util.isChrome = /Chrome/.test(Util.ua);
-
-        Util.isTouchEventEnabled = Util.isSp;
-
-        Util.useWebWorker = !Util.isAndroid || Util.isChrome;
-
-        Util.isPreventDefaultEnabled = Util.isiOS || /Android *(4|3)\..*/.test(Util.ua);
         return Util;
     })();
     LwfPlayer.Util = Util;
@@ -193,207 +198,218 @@ var LwfPlayer;
 
     var StageContractor = (function () {
         function StageContractor(player) {
-            this.player = null;
-            this.targetStage = null;
-            this.screenStage = null;
-            this.stageScale = 1;
-            this.devicePixelRatio = global.devicePixelRatio;
-            this.debugInfo = null;
-            this.from = global.performance.now();
-            this.currentFPS = 0;
-            this.execCount = 0;
-            this.stageWidth = 0;
-            this.stageHeight = 0;
-            this.stageStyleWidth = 0;
-            this.stageStyleHeight = 0;
-            this.player = player;
+            var _this = this;
+            this._player = null;
+            this._targetStage = null;
+            this._screenStage = null;
+            this._stageScale = 1;
+            this._devicePixelRatio = global._devicePixelRatio;
+            this._debugInfo = null;
+            this._from = global.performance.now();
+            this._currentFPS = 0;
+            this._execCount = 0;
+            this._stageWidth = 0;
+            this._stageHeight = 0;
+            this._stageStyleWidth = 0;
+            this._stageStyleHeight = 0;
+            this.changeStageSize = function (width, height) {
+                var screenWidth = LwfPlayer.Util.getStageWidth();
+                var screenHeight = LwfPlayer.Util.getStageHeight();
 
-            this.targetStage = this.player.getPlayerSettings().targetStage;
+                if (width > screenWidth) {
+                    width = screenWidth;
+                }
+                if (height > screenHeight) {
+                    height = screenHeight;
+                }
 
-            if (this.targetStage.style.position === "static" || LwfPlayer.Util.isEmpty(this.targetStage.style.position)) {
-                this.targetStage.style.position = "relative";
+                if (_this._player.lwfSettings.fitForWidth) {
+                    _this.fitForWidth(width, height);
+                } else if (_this._player.lwfSettings.fitForHeight) {
+                    _this.fitForHeight(width, height);
+                } else {
+                    _this.fitToScreen(width, height);
+                }
+
+                _this._screenStage.style.width = _this._eventReceiveStage.style.width = _this._stageStyleWidth + "px";
+                _this._screenStage.style.height = _this._eventReceiveStage.style.height = _this._stageStyleHeight + "px";
+
+                _this._screenStage.setAttribute("width", _this._stageWidth + "");
+                _this._screenStage.setAttribute("height", _this._stageHeight + "");
+            };
+            this.fitForWidth = function (lwfWidth, lwfHeight) {
+                _this._stageStyleWidth = Math.round(lwfWidth);
+                _this._stageStyleHeight = Math.round(lwfWidth * lwfHeight / lwfWidth);
+                _this.setStageWidthAndHeight();
+                _this._stageScale = _this._stageStyleWidth / _this._stageWidth;
+            };
+            this.fitForHeight = function (lwfWidth, lwfHeight) {
+                _this._stageStyleWidth = Math.round(lwfHeight * lwfWidth / lwfHeight);
+                _this._stageStyleHeight = Math.round(lwfHeight);
+                _this.setStageWidthAndHeight();
+                _this._stageScale = _this._stageStyleHeight / _this._stageHeight;
+            };
+            this.fitToScreen = function (lwfWidth, lwfHeight) {
+                var screenWidth = LwfPlayer.Util.getStageWidth();
+                var screenHeight = LwfPlayer.Util.getStageHeight();
+
+                var stageRatio = lwfWidth / lwfHeight;
+                var screenRatio = screenWidth / screenHeight;
+
+                if (screenRatio > stageRatio) {
+                    _this._stageStyleWidth = lwfWidth * (screenHeight / lwfHeight);
+                    _this._stageStyleHeight = screenHeight;
+                    _this.setStageWidthAndHeight();
+                    _this._stageScale = _this._stageStyleWidth / _this._stageWidth;
+                } else {
+                    _this._stageStyleWidth = screenWidth;
+                    _this._stageStyleHeight = lwfHeight * (screenWidth / lwfWidth);
+                    _this.setStageWidthAndHeight();
+                    _this._stageScale = _this._stageStyleHeight / _this._stageHeight;
+                }
+            };
+            this.setStageWidthAndHeight = function () {
+                _this._stageWidth = Math.floor(_this._stageStyleWidth * _this._devicePixelRatio);
+                _this._stageHeight = Math.floor(_this._stageStyleHeight * _this._devicePixelRatio);
+            };
+            this.addEventListeners = function () {
+                if (LwfPlayer.Util.isTouchEventEnabled) {
+                    _this._eventReceiveStage.addEventListener("touchmove", _this._player.onMove, false);
+                    _this._eventReceiveStage.addEventListener("touchstart", _this._player.onPress, false);
+                    _this._eventReceiveStage.addEventListener("touchend", _this._player.onRelease, false);
+                } else {
+                    _this._eventReceiveStage.addEventListener("mousedown", _this._player.onPress, false);
+                    _this._eventReceiveStage.addEventListener("mousemove", _this._player.onMove, false);
+                    _this._eventReceiveStage.addEventListener("mouseup", _this._player.onRelease, false);
+                }
+            };
+            this.removeEventListeners = function () {
+                if (LwfPlayer.Util.isTouchEventEnabled) {
+                    _this._eventReceiveStage.removeEventListener("touchstart", _this._player.onPress, false);
+                    _this._eventReceiveStage.removeEventListener("touchmove", _this._player.onMove, false);
+                    _this._eventReceiveStage.removeEventListener("touchend", _this._player.onRelease, false);
+                } else {
+                    _this._eventReceiveStage.removeEventListener("mousedown", _this._player.onPress, false);
+                    _this._eventReceiveStage.removeEventListener("mousemove", _this._player.onMove, false);
+                    _this._eventReceiveStage.removeEventListener("mouseup", _this._player.onRelease, false);
+                }
+            };
+            this.createScreenStage = function (rendererSelector) {
+                if (rendererSelector.renderer === LwfPlayer.RendererName[0 /* useCanvasRenderer */] || rendererSelector.renderer === LwfPlayer.RendererName[2 /* useWebGLRenderer */]) {
+                    _this._screenStage = document.createElement("canvas");
+                } else {
+                    _this._screenStage = document.createElement("div");
+                }
+
+                var pos = _this._player.lwfSettings.pos;
+                if (LwfPlayer.Util.isEmpty(pos)) {
+                    _this._player.lwfSettings.initPos();
+                    pos = _this._player.lwfSettings.pos;
+                }
+
+                _this._screenStage.style.position = pos["position"];
+                _this._screenStage.style.top = pos["top"] + "px";
+                _this._screenStage.style.left = pos["left"] + "px";
+                _this._screenStage.style.zIndex = _this._targetStage.style.zIndex + 1;
+                _this._screenStage.style.opacity = LwfPlayer.Util.getOpacity(rendererSelector.renderer);
+
+                _this._targetStage.appendChild(_this._screenStage);
+            };
+            this.createEventReceiveStage = function () {
+                var pos = _this._player.lwfSettings.pos;
+
+                _this._eventReceiveStage = document.createElement("div");
+                _this._eventReceiveStage.style.position = "absolute";
+                _this._eventReceiveStage.style.top = pos["top"] + "px";
+                _this._eventReceiveStage.style.left = pos["left"] + "px";
+                _this._eventReceiveStage.style.zIndex = _this._screenStage.style.zIndex + 1;
+                _this._targetStage.appendChild(_this._eventReceiveStage);
+            };
+            this.viewDebugInfo = function () {
+                if (LwfPlayer.Util.isEmpty(_this._debugInfo)) {
+                    _this._debugInfo = document.createElement("div");
+                    _this._debugInfo.style.position = "absolute";
+                    _this._debugInfo.style.top = "0px";
+                    _this._debugInfo.style.left = "0px";
+                    _this._debugInfo.style.zIndex = "9999";
+                    _this._debugInfo.style.color = "red";
+                    _this._debugInfo.id = "__lwfPlayerDebugInfoID";
+                    _this._targetStage.appendChild(_this._debugInfo);
+                }
+
+                if (_this._execCount % 60 === 0) {
+                    var _time = global.performance.now();
+                    _this._currentFPS = Math.round(60000.0 / (_time - _this._from));
+                    _this._from = _time;
+                    _this._execCount = 0;
+                }
+
+                var x = _this._player.coordinator.x;
+                var y = _this._player.coordinator.y;
+                var renderer = _this._player.rendererSelector.renderer.substring(3);
+                renderer = renderer.substring(0, renderer.lastIndexOf("Renderer"));
+                _this._execCount++;
+                _this._debugInfo.innerHTML = renderer + " " + _this._currentFPS + "fps " + "X:" + x + " Y:" + y + "<br>" + "sw:" + _this._stageStyleWidth + " sh:" + _this._stageStyleHeight + " w:" + _this._stageWidth + " h:" + _this._stageHeight + " s:" + _this._stageScale + " dpr:" + _this.devicePixelRatio;
+            };
+            this._player = player;
+
+            this._targetStage = this._player.playerSettings.targetStage;
+
+            if (this._targetStage.style.position === "static" || LwfPlayer.Util.isEmpty(this._targetStage.style.position)) {
+                this._targetStage.style.position = "relative";
             }
 
-            if (this.player.getRendererSelector().getRenderer() === LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]) {
-                this.devicePixelRatio = 1;
+            if (this._player.rendererSelector.renderer === LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]) {
+                this._devicePixelRatio = 1;
             }
 
-            if (this.player.getRendererSelector().getRenderer() === LwfPlayer.RendererName[2 /* useWebGLRenderer */] && / F-/.test(LwfPlayer.Util.ua)) {
-                this.devicePixelRatio = 2;
+            if (this._player.rendererSelector.renderer === LwfPlayer.RendererName[2 /* useWebGLRenderer */] && / F-/.test(LwfPlayer.Util.ua)) {
+                this._devicePixelRatio = 2;
             }
 
-            if (LwfPlayer.Util.isEmpty(this.devicePixelRatio)) {
-                this.devicePixelRatio = 1;
+            if (LwfPlayer.Util.isEmpty(this._devicePixelRatio)) {
+                this._devicePixelRatio = 1;
             }
         }
-        StageContractor.prototype.getDevicePixelRatio = function () {
-            return this.devicePixelRatio;
-        };
+        Object.defineProperty(StageContractor.prototype, "devicePixelRatio", {
+            get: function () {
+                return this._devicePixelRatio;
+            },
+            enumerable: true,
+            configurable: true
+        });
 
-        StageContractor.prototype.getStageScale = function () {
-            return this.stageScale;
-        };
+        Object.defineProperty(StageContractor.prototype, "stageScale", {
+            get: function () {
+                return this._stageScale;
+            },
+            enumerable: true,
+            configurable: true
+        });
 
-        StageContractor.prototype.getScreenStage = function () {
-            return this.screenStage;
-        };
+        Object.defineProperty(StageContractor.prototype, "screenStage", {
+            get: function () {
+                return this._screenStage;
+            },
+            enumerable: true,
+            configurable: true
+        });
 
-        StageContractor.prototype.getScreenStageWidth = function () {
-            return +this.screenStage.getAttribute("width");
-        };
+        Object.defineProperty(StageContractor.prototype, "screenStageWidth", {
+            get: function () {
+                return +this._screenStage.getAttribute("width");
+            },
+            enumerable: true,
+            configurable: true
+        });
 
-        StageContractor.prototype.getScreenStageHeight = function () {
-            return +this.screenStage.getAttribute("height");
-        };
-
-        StageContractor.prototype.changeStageSize = function (width, height) {
-            var screenWidth = LwfPlayer.Util.getStageWidth();
-            var screenHeight = LwfPlayer.Util.getStageHeight();
-
-            if (width > screenWidth) {
-                width = screenWidth;
-            }
-            if (height > screenHeight) {
-                height = screenHeight;
-            }
-
-            if (this.player.getLwfSettings().fitForWidth) {
-                this.fitForWidth(width, height);
-            } else if (this.player.getLwfSettings().fitForHeight) {
-                this.fitForHeight(width, height);
-            } else {
-                this.fitToScreen(width, height);
-            }
-
-            this.screenStage.style.width = this.eventReceiveStage.style.width = this.stageStyleWidth + "px";
-            this.screenStage.style.height = this.eventReceiveStage.style.height = this.stageStyleHeight + "px";
-
-            this.screenStage.setAttribute("width", this.stageWidth + "");
-            this.screenStage.setAttribute("height", this.stageHeight + "");
-        };
-
-        StageContractor.prototype.fitForWidth = function (lwfWidth, lwfHeight) {
-            this.stageStyleWidth = Math.round(lwfWidth);
-            this.stageStyleHeight = Math.round(lwfWidth * lwfHeight / lwfWidth);
-            this.setStageWidthAndHeight();
-            this.stageScale = this.stageStyleWidth / this.stageWidth;
-        };
-
-        StageContractor.prototype.fitForHeight = function (lwfWidth, lwfHeight) {
-            this.stageStyleWidth = Math.round(lwfHeight * lwfWidth / lwfHeight);
-            this.stageStyleHeight = Math.round(lwfHeight);
-            this.setStageWidthAndHeight();
-            this.stageScale = this.stageStyleHeight / this.stageHeight;
-        };
-
-        StageContractor.prototype.fitToScreen = function (lwfWidth, lwfHeight) {
-            var screenWidth = LwfPlayer.Util.getStageWidth();
-            var screenHeight = LwfPlayer.Util.getStageHeight();
-
-            var stageRatio = lwfWidth / lwfHeight;
-            var screenRatio = screenWidth / screenHeight;
-
-            if (screenRatio > stageRatio) {
-                this.stageStyleWidth = lwfWidth * (screenHeight / lwfHeight);
-                this.stageStyleHeight = screenHeight;
-                this.setStageWidthAndHeight();
-                this.stageScale = this.stageStyleWidth / this.stageWidth;
-            } else {
-                this.stageStyleWidth = screenWidth;
-                this.stageStyleHeight = lwfHeight * (screenWidth / lwfWidth);
-                this.setStageWidthAndHeight();
-                this.stageScale = this.stageStyleHeight / this.stageHeight;
-            }
-        };
-
-        StageContractor.prototype.setStageWidthAndHeight = function () {
-            this.stageWidth = Math.floor(this.stageStyleWidth * this.devicePixelRatio);
-            this.stageHeight = Math.floor(this.stageStyleHeight * this.devicePixelRatio);
-        };
-
-        StageContractor.prototype.addEventListeners = function () {
-            if (LwfPlayer.Util.isTouchEventEnabled) {
-                this.eventReceiveStage.addEventListener("touchmove", this.player.onMove, false);
-                this.eventReceiveStage.addEventListener("touchstart", this.player.onPress, false);
-                this.eventReceiveStage.addEventListener("touchend", this.player.onRelease, false);
-            } else {
-                this.eventReceiveStage.addEventListener("mousedown", this.player.onPress, false);
-                this.eventReceiveStage.addEventListener("mousemove", this.player.onMove, false);
-                this.eventReceiveStage.addEventListener("mouseup", this.player.onRelease, false);
-            }
-        };
-
-        StageContractor.prototype.removeEventListeners = function () {
-            if (LwfPlayer.Util.isTouchEventEnabled) {
-                this.eventReceiveStage.removeEventListener("touchstart", this.player.onPress, false);
-                this.eventReceiveStage.removeEventListener("touchmove", this.player.onMove, false);
-                this.eventReceiveStage.removeEventListener("touchend", this.player.onRelease, false);
-            } else {
-                this.eventReceiveStage.removeEventListener("mousedown", this.player.onPress, false);
-                this.eventReceiveStage.removeEventListener("mousemove", this.player.onMove, false);
-                this.eventReceiveStage.removeEventListener("mouseup", this.player.onRelease, false);
-            }
-        };
-
-        StageContractor.prototype.createScreenStage = function (rendererSelector) {
-            if (rendererSelector.getRenderer() === LwfPlayer.RendererName[0 /* useCanvasRenderer */] || rendererSelector.getRenderer() === LwfPlayer.RendererName[2 /* useWebGLRenderer */]) {
-                this.screenStage = document.createElement("canvas");
-            } else {
-                this.screenStage = document.createElement("div");
-            }
-
-            var pos = this.player.getLwfSettings().pos;
-            if (LwfPlayer.Util.isEmpty(pos)) {
-                this.player.getLwfSettings().initPos();
-                pos = this.player.getLwfSettings().pos;
-            }
-
-            this.screenStage.style.position = pos["position"];
-            this.screenStage.style.top = pos["top"] + "px";
-            this.screenStage.style.left = pos["left"] + "px";
-            this.screenStage.style.zIndex = this.targetStage.style.zIndex + 1;
-            this.screenStage.style.opacity = LwfPlayer.Util.getOpacity(rendererSelector.getRenderer());
-
-            this.targetStage.appendChild(this.screenStage);
-        };
-
-        StageContractor.prototype.createEventReceiveStage = function () {
-            var pos = this.player.getLwfSettings().pos;
-
-            this.eventReceiveStage = document.createElement("div");
-            this.eventReceiveStage.style.position = "absolute";
-            this.eventReceiveStage.style.top = pos["top"] + "px";
-            this.eventReceiveStage.style.left = pos["left"] + "px";
-            this.eventReceiveStage.style.zIndex = this.screenStage.style.zIndex + 1;
-            this.targetStage.appendChild(this.eventReceiveStage);
-        };
-
-        StageContractor.prototype.viewDebugInfo = function () {
-            if (LwfPlayer.Util.isEmpty(this.debugInfo)) {
-                this.debugInfo = document.createElement("div");
-                this.debugInfo.style.position = "absolute";
-                this.debugInfo.style.top = "0px";
-                this.debugInfo.style.left = "0px";
-                this.debugInfo.style.zIndex = "9999";
-                this.debugInfo.style.color = "red";
-                this.debugInfo.id = "__lwfPlayerDebugInfoID";
-                this.targetStage.appendChild(this.debugInfo);
-            }
-
-            if (this.execCount % 60 === 0) {
-                var _time = global.performance.now();
-                this.currentFPS = Math.round(60000.0 / (_time - this.from));
-                this.from = _time;
-                this.execCount = 0;
-            }
-
-            var x = this.player.getCoordinator().getX();
-            var y = this.player.getCoordinator().getY();
-            var renderer = this.player.getRendererSelector().getRenderer().substring(3);
-            renderer = renderer.substring(0, renderer.lastIndexOf("Renderer"));
-            this.execCount++;
-            this.debugInfo.innerHTML = renderer + " " + this.currentFPS + "fps " + "X:" + x + " Y:" + y + "<br>" + "sw:" + this.stageStyleWidth + " sh:" + this.stageStyleHeight + " w:" + this.stageWidth + " h:" + this.stageHeight + " s:" + this.stageScale + " dpr:" + this.getDevicePixelRatio();
-        };
+        Object.defineProperty(StageContractor.prototype, "screenStageHeight", {
+            get: function () {
+                return +this._screenStage.getAttribute("height");
+            },
+            enumerable: true,
+            configurable: true
+        });
         return StageContractor;
     })();
     LwfPlayer.StageContractor = StageContractor;
@@ -403,50 +419,62 @@ var LwfPlayer;
 (function (LwfPlayer) {
     var Coordinator = (function () {
         function Coordinator(stageContractor) {
-            this.x = 0;
-            this.y = 0;
-            this.isPreventDefaultEnabled = LwfPlayer.Util.isPreventDefaultEnabled;
-            this.stageContractor = stageContractor;
+            var _this = this;
+            this._x = 0;
+            this._y = 0;
+            this._isPreventDefaultEnabled = LwfPlayer.Util.isPreventDefaultEnabled;
+            this.setCoordinate = function (event) {
+                if (_this._isPreventDefaultEnabled) {
+                    event.preventDefault();
+                }
+
+                var stageRect = _this._stageContractor.screenStage.getBoundingClientRect();
+                var stageScale = _this._stageContractor.stageScale;
+
+                if (LwfPlayer.Util.isTouchEventEnabled) {
+                    _this._x = event.touches[0].pageX;
+                    _this._y = event.touches[0].pageY;
+                } else {
+                    _this._x = event.clientX;
+                    _this._y = event.clientY;
+                }
+
+                _this._x -= stageRect.left;
+                _this._y -= stageRect.top;
+
+                if (LwfPlayer.Util.isSp) {
+                    _this._x -= global.scrollX;
+                    _this._y -= global.scrollY;
+                }
+
+                _this._x /= stageScale;
+                _this._y /= stageScale;
+            };
+            this._stageContractor = stageContractor;
         }
-        Coordinator.prototype.setIsPreventDefaultEnabled = function (isPreventDefaultEnabled) {
-            this.isPreventDefaultEnabled = isPreventDefaultEnabled;
-        };
+        Object.defineProperty(Coordinator.prototype, "preventDefaultEnabled", {
+            set: function (isPreventDefaultEnabled) {
+                this._isPreventDefaultEnabled = isPreventDefaultEnabled;
+            },
+            enumerable: true,
+            configurable: true
+        });
 
-        Coordinator.prototype.setCoordinate = function (event) {
-            if (this.isPreventDefaultEnabled) {
-                event.preventDefault();
-            }
+        Object.defineProperty(Coordinator.prototype, "x", {
+            get: function () {
+                return this._x;
+            },
+            enumerable: true,
+            configurable: true
+        });
 
-            var stageRect = this.stageContractor.getScreenStage().getBoundingClientRect();
-            var stageScale = this.stageContractor.getStageScale();
-
-            if (LwfPlayer.Util.isTouchEventEnabled) {
-                this.x = event.touches[0].pageX;
-                this.y = event.touches[0].pageY;
-            } else {
-                this.x = event.clientX;
-                this.y = event.clientY;
-            }
-
-            this.x -= stageRect.left;
-            this.y -= stageRect.top;
-
-            if (LwfPlayer.Util.isSp) {
-                this.x -= global.scrollX;
-                this.y -= global.scrollY;
-            }
-
-            this.x /= stageScale;
-            this.y /= stageScale;
-        };
-
-        Coordinator.prototype.getX = function () {
-            return this.x;
-        };
-
-        Coordinator.prototype.getY = function () {
-            return this.y;
-        };
+        Object.defineProperty(Coordinator.prototype, "y", {
+            get: function () {
+                return this._y;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return Coordinator;
     })();
     LwfPlayer.Coordinator = Coordinator;
@@ -510,42 +538,56 @@ var LwfPlayer;
 
     var LwfSettings = (function () {
         function LwfSettings() {
-        }
-        LwfSettings.prototype.validationLwfSettings = function () {
-            if (LwfPlayer.Util.isEmpty(this.lwf)) {
-                throw new Error("lwf property is require.");
-            }
-        };
-
-        LwfSettings.prototype.initPos = function () {
-            this.pos = {
-                "position": "absolute",
-                "top": 0,
-                "left": 0
+            var _this = this;
+            this.validationLwfSettings = function () {
+                if (LwfPlayer.Util.isEmpty(_this.lwf)) {
+                    throw new Error("lwf property is require.");
+                }
             };
-        };
+            this.initPos = function () {
+                _this.pos = {
+                    "position": "absolute",
+                    "top": 0,
+                    "left": 0
+                };
+            };
+            this.prepareLwfSettings = function (player) {
+                if (LwfPlayer.Util.isEmpty(_this.privateData)) {
+                    _this.privateData = {};
+                }
 
-        LwfSettings.prototype.prepareLwfSettings = function (player) {
-            if (LwfPlayer.Util.isEmpty(this.privateData)) {
-                this.privateData = {};
-            }
+                if (LwfPlayer.Util.isEmpty(_this.useBackgroundColor)) {
+                    _this.useBackgroundColor = true;
+                }
 
-            if (LwfPlayer.Util.isEmpty(this.useBackgroundColor)) {
-                this.useBackgroundColor = true;
-            }
+                _this.stage = player.stageContractor.screenStage;
+                _this.imageMap = LwfSettings.getImageMapper(_this.imageMap);
 
-            this.stage = player.getStageContractor().getScreenStage();
-            this.imageMap = LwfSettings.getImageMapper(this.imageMap);
+                if (LwfPlayer.Util.isAndroid) {
+                    LwfPlayer.Util.forceSettingForAndroid(_this, player.rendererSelector.renderer);
+                }
 
-            if (LwfPlayer.Util.isAndroid) {
-                LwfPlayer.Util.forceSettingForAndroid(this, player.getRendererSelector().getRenderer());
-            }
+                _this.onload = player.onLoad;
 
-            this.onload = player.onLoad;
+                LwfPlayer.LwfLoader.setLoader(player, _this);
+            };
+            this.getLwfPath = function (lwfName) {
+                if (LwfPlayer.Util.isNotEmpty(_this.lwfMap)) {
+                    if (_this.lwfMap instanceof Function) {
+                        return _this.lwfMap(lwfName);
+                    }
 
-            LwfPlayer.LwfLoader.setLoader(player, this);
-        };
+                    var path = _this.lwfMap[lwfName];
+                    if (!/\.lwf$/.test(path)) {
+                        path += ".lwf";
+                    }
 
+                    return path;
+                }
+
+                return LwfPlayer.LwfLoader.getLwfPath(lwfName);
+            };
+        }
         LwfSettings.getImageMapper = function (imageMap) {
             if (imageMap instanceof Function) {
                 return imageMap;
@@ -558,23 +600,6 @@ var LwfPlayer;
                 return pImageId;
             };
         };
-
-        LwfSettings.prototype.getLwfPath = function (lwfName) {
-            if (LwfPlayer.Util.isNotEmpty(this.lwfMap)) {
-                if (this.lwfMap instanceof Function) {
-                    return this.lwfMap(lwfName);
-                }
-
-                var path = this.lwfMap[lwfName];
-                if (!/\.lwf$/.test(path)) {
-                    path += ".lwf";
-                }
-
-                return path;
-            }
-
-            return LwfPlayer.LwfLoader.getLwfPath(lwfName);
-        };
         return LwfSettings;
     })();
     LwfPlayer.LwfSettings = LwfSettings;
@@ -583,12 +608,48 @@ var LwfPlayer;
 (function (LwfPlayer) {
     var PlayerSettings = (function () {
         function PlayerSettings() {
+            var _this = this;
+            this.validationPlayerSettings = function () {
+                if (LwfPlayer.Util.isEmpty(_this.targetStage)) {
+                    throw new Error("targetStage property is need HTMLElement");
+                }
+            };
         }
-        PlayerSettings.prototype.validationPlayerSettings = function () {
-            if (LwfPlayer.Util.isEmpty(this.targetStage)) {
-                throw new Error("targetStage property is need HTMLElement");
-            }
-        };
+
+        Object.defineProperty(PlayerSettings.prototype, "renderer", {
+            get: function () {
+                return this._renderer;
+            },
+            set: function (renderer) {
+                this._renderer = renderer;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+
+        Object.defineProperty(PlayerSettings.prototype, "isDebugMode", {
+            get: function () {
+                return this._isDebugMode;
+            },
+            set: function (isDebugMode) {
+                this._isDebugMode = isDebugMode;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+
+        Object.defineProperty(PlayerSettings.prototype, "targetStage", {
+            get: function () {
+                return this._targetStage;
+            },
+            set: function (targetStage) {
+                this._targetStage = targetStage;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return PlayerSettings;
     })();
     LwfPlayer.PlayerSettings = PlayerSettings;
@@ -600,277 +661,261 @@ var LwfPlayer;
 
     var Player = (function () {
         function Player(playerSettings, lwfSettings) {
-            this.lwf = null;
-            this.cache = null;
-            this.playerSettings = null;
-            this.lwfSettings = new LwfPlayer.LwfSettings();
-            this.stageContractor = null;
-            this.coordinator = null;
-            this.rendererSelector = new LwfPlayer.RendererSelector();
-            this.inputQueue = [];
-            this.fromTime = global.performance.now();
-            this.pausing = false;
-            this.goPlayBack = false;
-            this.destroyed = false;
-            this.goRestart = false;
-            this.setSettingsAndValidation(playerSettings, lwfSettings);
-            this.rendererSelector.setRenderer(this.playerSettings);
-        }
-        Player.prototype.play = function () {
-            this.restraint();
-            this.initStage();
-            this.initLwf();
-
-            this.lwfSettings.prepareLwfSettings(this);
-
-            this.cache.loadLWF(this.lwfSettings);
-        };
-
-        Player.prototype.pause = function () {
-            this.pausing = true;
-        };
-
-        Player.prototype.resume = function () {
-            this.pausing = false;
-        };
-
-        Player.prototype.playBack = function () {
-            this.goPlayBack = true;
-        };
-
-        Player.prototype.reStart = function (lwfSettings) {
-            this.goRestart = true;
-
-            this.setSettingsAndValidation(this.playerSettings, lwfSettings);
-
-            this.lwfSettings.prepareLwfSettings(this);
-            this.cache.loadLWF(this.lwfSettings);
-        };
-
-        Player.prototype.destroy = function () {
-            this.destroyed = true;
-        };
-
-        Player.prototype.getCoordinator = function () {
-            return this.coordinator;
-        };
-
-        Player.prototype.getPlayerSettings = function () {
-            return this.playerSettings;
-        };
-
-        Player.prototype.getLwfSettings = function () {
-            return this.lwfSettings;
-        };
-
-        Player.prototype.getRendererSelector = function () {
-            return this.rendererSelector;
-        };
-
-        Player.prototype.getStageContractor = function () {
-            return this.stageContractor;
-        };
-
-        Player.prototype.handleLoadError = function () {
-            if (this.lwfSettings.handler && this.lwfSettings.handler["loadError"] instanceof Function) {
-                this.lwfSettings.handler["loadError"](this.lwfSettings.error);
-            }
-            console.error("[LWF] load error: %o", this.lwfSettings.error);
-        };
-
-        Player.prototype.handleException = function (exception) {
-            if (this.lwfSettings.handler && this.lwfSettings.handler["exception"] instanceof Function) {
-                this.lwfSettings.handler["exception"](exception);
-            }
-            console.error("[LWF] load Exception: %o", exception);
-        };
-
-        Player.prototype.exec = function () {
             var _this = this;
-            try  {
-                if (this.goRestart) {
-                    this.goRestart = false;
-                    return;
-                }
+            this._lwf = null;
+            this._cache = null;
+            this._playerSettings = null;
+            this._lwfSettings = new LwfPlayer.LwfSettings();
+            this._stageContractor = null;
+            this._coordinator = null;
+            this._rendererSelector = new LwfPlayer.RendererSelector();
+            this._inputQueue = [];
+            this._fromTime = global.performance.now();
+            this._pausing = false;
+            this._goPlayBack = false;
+            this._destroyed = false;
+            this._goRestart = false;
+            this.play = function () {
+                _this.initStage();
+                _this.initLwf();
 
-                if (this.destroyed) {
-                    this.destroyLwf();
-                    return;
-                }
+                _this._lwfSettings.prepareLwfSettings(_this);
 
-                if (this.goPlayBack) {
-                    this.goPlayBack = false;
-                    this.lwf.init();
-                }
+                _this._cache.loadLWF(_this._lwfSettings);
+            };
+            this.pause = function () {
+                _this._pausing = true;
+            };
+            this.resume = function () {
+                _this._pausing = false;
+            };
+            this.playBack = function () {
+                _this._goPlayBack = true;
+            };
+            this.reStart = function (lwfSettings) {
+                _this._goRestart = true;
 
-                if (LwfPlayer.Util.isNotEmpty(this.lwf) && !this.pausing) {
-                    for (var i = 0; i < this.inputQueue.length; i++) {
-                        this.inputQueue[i].apply(this);
+                _this.setSettingsAndValidation(_this._playerSettings, lwfSettings);
+
+                _this._lwfSettings.prepareLwfSettings(_this);
+                _this._cache.loadLWF(_this._lwfSettings);
+            };
+            this.destroy = function () {
+                _this._destroyed = true;
+            };
+            this.handleLoadError = function () {
+                if (_this._lwfSettings.handler && _this._lwfSettings.handler["loadError"] instanceof Function) {
+                    _this._lwfSettings.handler["loadError"](_this._lwfSettings.error);
+                }
+                console.error("[LWF] load error: %o", _this._lwfSettings.error);
+            };
+            this.handleException = function (exception) {
+                if (_this._lwfSettings.handler && _this._lwfSettings.handler["exception"] instanceof Function) {
+                    _this._lwfSettings.handler["exception"](exception);
+                }
+                console.error("[LWF] load Exception: %o", exception);
+            };
+            this.exec = function () {
+                try  {
+                    if (_this._goRestart) {
+                        _this._goRestart = false;
+                        return;
                     }
-                    this.stageContractor.changeStageSize(this.lwf.width, this.lwf.height);
-                    this.renderLwf();
+
+                    if (_this._destroyed) {
+                        _this.destroyLwf();
+                        return;
+                    }
+
+                    if (_this._goPlayBack) {
+                        _this._goPlayBack = false;
+                        _this._lwf.init();
+                    }
+
+                    if (LwfPlayer.Util.isNotEmpty(_this._lwf) && !_this._pausing) {
+                        for (var i = 0; i < _this._inputQueue.length; i++) {
+                            _this._inputQueue[i].apply(_this);
+                        }
+                        _this._stageContractor.changeStageSize(_this._lwf.width, _this._lwf.height);
+                        _this.renderLwf();
+                    }
+                    _this._inputQueue = [];
+                    global.requestAnimationFrame(function () {
+                        _this.exec();
+                    });
+                } catch (e) {
+                    _this.handleException(e);
                 }
-                this.inputQueue = [];
-                global.requestAnimationFrame(function () {
-                    _this.exec();
+            };
+            this.initStage = function () {
+                _this._stageContractor = new LwfPlayer.StageContractor(_this);
+                _this._stageContractor.createScreenStage(_this._rendererSelector);
+                _this._stageContractor.createEventReceiveStage();
+                _this._stageContractor.addEventListeners();
+                _this._coordinator = new LwfPlayer.Coordinator(_this._stageContractor);
+            };
+            this.initLwf = function () {
+                try  {
+                    switch (_this._rendererSelector.renderer) {
+                        case LwfPlayer.RendererName[0 /* useCanvasRenderer */]:
+                            global.LWF.useCanvasRenderer();
+                            break;
+
+                        case LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]:
+                            global.LWF.useWebkitCSSRenderer();
+                            break;
+
+                        case LwfPlayer.RendererName[2 /* useWebGLRenderer */]:
+                            global.LWF.useWebGLRenderer();
+                            break;
+
+                        default:
+                            throw new Error("not supported renderer");
+                    }
+
+                    _this._cache = global.LWF.ResourceCache.get();
+                } catch (e) {
+                    _this.handleException(e);
+                }
+            };
+            this.renderLwf = function () {
+                var stageWidth = _this._stageContractor.screenStageWidth;
+                var stageHeight = _this._stageContractor.screenStageHeight;
+                var toTime = global.performance.now();
+                var tickTack = (toTime - _this._fromTime) / 1000;
+                _this._fromTime = toTime;
+
+                _this._lwf.property.clear();
+
+                if (_this._lwfSettings.fitForWidth) {
+                    _this._lwf.fitForWidth(stageWidth, stageHeight);
+                } else {
+                    _this._lwf.fitForHeight(stageWidth, stageHeight);
+                }
+
+                if (_this.rendererSelector.renderer === LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]) {
+                    _this._lwf.setTextScale(_this.stageContractor.devicePixelRatio);
+                }
+
+                _this._lwf.property.moveTo(0, 0);
+                _this._lwf.exec(tickTack);
+                _this._lwf.render();
+
+                if (_this._playerSettings.isDebugMode) {
+                    _this._stageContractor.viewDebugInfo();
+                }
+            };
+            this.destroyLwf = function () {
+                if (LwfPlayer.Util.isNotEmpty(_this._lwf)) {
+                    _this._stageContractor.removeEventListeners();
+                    _this._lwf.destroy();
+                    _this._cache = null;
+                    _this._lwf = null;
+
+                    console.log("destroy LWF.");
+                }
+                console.log("LWF is destroyed.");
+            };
+            this.setSettingsAndValidation = function (playerSettings, lwfSettings) {
+                if (LwfPlayer.Util.isEmpty(playerSettings) || LwfPlayer.Util.isEmpty(lwfSettings)) {
+                    throw new Error("not enough argument.");
+                }
+
+                if (!(playerSettings instanceof LwfPlayer.PlayerSettings) || !(lwfSettings instanceof LwfPlayer.LwfSettings)) {
+                    throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
+                }
+
+                _this._playerSettings = playerSettings;
+                _this._playerSettings.validationPlayerSettings();
+
+                _this._lwfSettings = lwfSettings;
+                _this._lwfSettings.validationLwfSettings();
+            };
+            this.inputPoint = function (e) {
+                _this._coordinator.setCoordinate(e);
+                _this._lwf.inputPoint(_this._coordinator.x, _this._coordinator.y);
+            };
+            this.inputPress = function (e) {
+                _this.inputPoint(e);
+                _this._lwf.inputPress();
+            };
+            this.onMove = function (e) {
+                _this._inputQueue.push(function () {
+                    this.inputPoint(e);
                 });
-            } catch (e) {
-                _this.handleException(e);
-            }
-        };
-
-        Player.prototype.initStage = function () {
-            this.stageContractor = new LwfPlayer.StageContractor(this);
-            this.stageContractor.createScreenStage(this.rendererSelector);
-            this.stageContractor.createEventReceiveStage();
-            this.stageContractor.addEventListeners();
-            this.coordinator = new LwfPlayer.Coordinator(this.stageContractor);
-        };
-
-        Player.prototype.initLwf = function () {
-            try  {
-                switch (this.rendererSelector.getRenderer()) {
-                    case LwfPlayer.RendererName[0 /* useCanvasRenderer */]:
-                        global.LWF.useCanvasRenderer();
-                        break;
-
-                    case LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]:
-                        global.LWF.useWebkitCSSRenderer();
-                        break;
-
-                    case LwfPlayer.RendererName[2 /* useWebGLRenderer */]:
-                        global.LWF.useWebGLRenderer();
-                        break;
-
-                    default:
-                        throw new Error("not supported renderer");
-                }
-
-                this.cache = global.LWF.ResourceCache.get();
-            } catch (e) {
-                this.handleException(e);
-            }
-        };
-
-        Player.prototype.renderLwf = function () {
-            var stageWidth = this.stageContractor.getScreenStageWidth();
-            var stageHeight = this.stageContractor.getScreenStageHeight();
-            var toTime = global.performance.now();
-            var tickTack = (toTime - this.fromTime) / 1000;
-            this.fromTime = toTime;
-
-            this.lwf.property.clear();
-
-            if (this.lwfSettings.fitForWidth) {
-                this.lwf.fitForWidth(stageWidth, stageHeight);
-            } else {
-                this.lwf.fitForHeight(stageWidth, stageHeight);
-            }
-
-            if (this.getRendererSelector().getRenderer() === LwfPlayer.RendererName[1 /* useWebkitCSSRenderer */]) {
-                this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
-            }
-
-            this.lwf.property.moveTo(0, 0);
-            this.lwf.exec(tickTack);
-            this.lwf.render();
-
-            if (this.playerSettings.debug) {
-                this.stageContractor.viewDebugInfo();
-            }
-        };
-
-        Player.prototype.destroyLwf = function () {
-            if (LwfPlayer.Util.isNotEmpty(this.lwf)) {
-                this.stageContractor.removeEventListeners();
-                this.lwf.destroy();
-                this.cache = null;
-                this.lwf = null;
-
-                console.log("destroy LWF.");
-            }
-            console.log("LWF is destroyed.");
-        };
-
-        Player.prototype.setSettingsAndValidation = function (playerSettings, lwfSettings) {
-            if (LwfPlayer.Util.isEmpty(playerSettings) || LwfPlayer.Util.isEmpty(lwfSettings)) {
-                throw new Error("not enough argument.");
-            }
-
-            if (!(playerSettings instanceof LwfPlayer.PlayerSettings) || !(lwfSettings instanceof LwfPlayer.LwfSettings)) {
-                throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
-            }
-
-            this.playerSettings = playerSettings;
-            this.playerSettings.validationPlayerSettings();
-
-            this.lwfSettings = lwfSettings;
-            this.lwfSettings.validationLwfSettings();
-        };
-
-        Player.prototype.inputPoint = function (e) {
-            this.coordinator.setCoordinate(e);
-            this.lwf.inputPoint(this.coordinator.getX(), this.coordinator.getY());
-        };
-
-        Player.prototype.inputPress = function (e) {
-            this.inputPoint(e);
-            this.lwf.inputPress();
-        };
-
-        Player.prototype.onMove = function (e) {
-            this.inputQueue.push(function () {
-                this.inputPoint(e);
-            });
-        };
-
-        Player.prototype.onPress = function (e) {
-            this.inputQueue.push(function () {
-                this.inputPress(e);
-            });
-        };
-
-        Player.prototype.onRelease = function (e) {
-            this.inputQueue.push(function () {
-                this.lwf.inputRelease();
-            });
-        };
-
-        Player.prototype.onLoad = function (lwf) {
-            if (LwfPlayer.Util.isNotEmpty(lwf)) {
-                this.lwf = lwf;
-                this.exec();
-            } else {
-                this.handleLoadError();
-            }
-        };
-
-        Player.prototype.restraint = function () {
-            var __bind = function (fn, me) {
-                return function () {
-                    fn.apply(me, arguments);
-                };
             };
-
-            this.onRelease = __bind(this.onRelease, this);
-            this.onPress = __bind(this.onPress, this);
-            this.onMove = __bind(this.onMove, this);
-            this.onLoad = __bind(this.onLoad, this);
-        };
-
-        Player.prototype.loadLWF = function (lwf, lwfName, imageMap, privateData, callback) {
-            var childSettings = LwfPlayer.LwfLoader.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData, this.lwfSettings);
-            var _this = this;
-            childSettings.onload = function (childLwf) {
-                if (LwfPlayer.Util.isEmpty(childLwf)) {
+            this.onPress = function (e) {
+                _this._inputQueue.push(function () {
+                    this.inputPress(e);
+                });
+            };
+            this.onRelease = function (e) {
+                _this._inputQueue.push(function () {
+                    this._lwf.inputRelease();
+                });
+            };
+            this.onLoad = function (lwf) {
+                if (LwfPlayer.Util.isNotEmpty(lwf)) {
+                    _this._lwf = lwf;
+                    _this.exec();
+                } else {
                     _this.handleLoadError();
-                    return callback(childSettings["error"], childLwf);
                 }
-                return callback(null, childLwf);
             };
+            this.loadLWF = function (lwf, lwfName, imageMap, privateData, callback) {
+                var childSettings = LwfPlayer.LwfLoader.prepareChildLwfSettings(lwf, lwfName, imageMap, privateData, _this._lwfSettings);
+                childSettings.onload = function (childLwf) {
+                    if (LwfPlayer.Util.isEmpty(childLwf)) {
+                        this.handleLoadError();
+                        return callback(childSettings["error"], childLwf);
+                    }
+                    return callback(null, childLwf);
+                };
 
-            this.cache.loadLWF(childSettings);
-        };
+                _this._cache.loadLWF(childSettings);
+            };
+            this.setSettingsAndValidation(playerSettings, lwfSettings);
+            this._rendererSelector.renderer = this._playerSettings.renderer;
+        }
+        Object.defineProperty(Player.prototype, "coordinator", {
+            get: function () {
+                return this._coordinator;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(Player.prototype, "playerSettings", {
+            get: function () {
+                return this._playerSettings;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(Player.prototype, "lwfSettings", {
+            get: function () {
+                return this._lwfSettings;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(Player.prototype, "rendererSelector", {
+            get: function () {
+                return this._rendererSelector;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(Player.prototype, "stageContractor", {
+            get: function () {
+                return this._stageContractor;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return Player;
     })();
     LwfPlayer.Player = Player;

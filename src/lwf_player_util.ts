@@ -55,7 +55,7 @@ module LwfPlayer {
          */
         public static isPreventDefaultEnabled:boolean = Util.isiOS || /Android *(4|3)\..*/.test(Util.ua);
 
-        public static forceSettingForAndroid(lwfSettings:LwfSettings, renderer:string) {
+        public static forceSettingForAndroid = (lwfSettings:LwfSettings, renderer:string):void => {
             /** force to disable use3D on Android devices */
             lwfSettings.use3D = false;
 
@@ -68,7 +68,7 @@ module LwfPlayer {
                 renderer === RendererName[RendererName.useWebkitCSSRenderer]) {
                 lwfSettings.quirkyClearRect = true;
             }
-        }
+        };
 
         /**
          * tune opacity for SH devices using Android 2.3.5-2.3.7 with WebkitCSS Renderer
@@ -76,7 +76,7 @@ module LwfPlayer {
          * @param renderer
          * @returns {*}
          */
-        public static getOpacity(renderer:string):string {
+        public static getOpacity = (renderer:string):string => {
             if (renderer === RendererName[RendererName.useWebkitCSSRenderer] &&
                 /Android 2\.3\.[5-7]/.test(Util.ua) &&
                 /SH/.test(Util.ua)) {
@@ -84,29 +84,29 @@ module LwfPlayer {
             }
 
             return null;
-        }
+        };
 
         /**
          * fix innerWidth for old Android devices
          */
-        public static getStageWidth() {
+        public static getStageWidth = ():number => {
             if (global.innerWidth > global.screen.width) {
                 return global.screen.width;
             }
 
             return global.innerWidth;
-        }
+        };
 
         /**
          * fix innerHeight for old Android devices
          */
-        public static getStageHeight() {
+        public static getStageHeight = ():number => {
             if (global.innerHeight > global.screen.height) {
                 return global.screen.height;
             }
 
             return global.innerHeight;
-        }
+        };
 
         /**
          * if null or undefined or empty object is return true.
@@ -115,7 +115,7 @@ module LwfPlayer {
          *
          * @returns {boolean}
          */
-        public static isEmpty(arg:any):boolean {
+        public static isEmpty = (arg:any):boolean => {
             if (arg === void 0 || arg === null) {
                 return true;
             }
@@ -135,7 +135,7 @@ module LwfPlayer {
             }
 
             return !(arg instanceof Boolean);
-        }
+        };
 
         /**
          * @see Util.isEmpty
@@ -144,9 +144,9 @@ module LwfPlayer {
          *
          * @returns {boolean}
          */
-        public static isNotEmpty(arg) {
+        public static isNotEmpty = (arg) => {
             return !Util.isEmpty(arg);
-        }
+        };
     }
 
     /**
@@ -175,11 +175,11 @@ module LwfPlayer {
     if (Util.isEmpty(global.requestAnimationFrame) || /iP(ad|hone|od).*OS 6/.test(Util.ua)) {
         var vSync = 1000 / 60;
         var from = global.performance.now();
-        global.requestAnimationFrame = function (callback:Function) {
+        global.requestAnimationFrame = (callback:Function) => {
             var time = global.performance.now();
             var duration = time - from;
             var delay = vSync - ((duration > vSync) ? duration % vSync : duration);
-            return setTimeout(function () {
+            return setTimeout(() => {
                 from = global.performance.now();
                 callback();
             }, delay);
@@ -190,7 +190,7 @@ module LwfPlayer {
      * handle special behaviour of touch event on certain devices
      */
     if (Util.isAndroid && (Util.isChrome || / SC-0/.test(Util.ua))) {
-        document.body.addEventListener("touchstart", function () {
+        document.body.addEventListener("touchstart", () => {
         });
     }
 }

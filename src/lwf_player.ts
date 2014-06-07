@@ -1,10 +1,3 @@
-/**
- * Created by tdoe on 5/5/14.
- *
- * This class is LwfPlayer main class.
- * using other LwfPlayer.* class, control LWF animation.
- */
-
 /// <reference path="lib/lwf.d.ts"/>
 
 /// <reference path="lwf_player_renderer_name.ts"/>
@@ -17,30 +10,40 @@
 
 declare var global:any; // window or worker assigned by LWF
 
+/**
+ * Created by tdoe on 5/5/14.
+ *
+ * This class is LwfPlayer main class.
+ * using other LwfPlayer.* class, control LWF animation.
+ */
 module LwfPlayer {
 
     "use strict";
 
+    /**
+     * @type {LwfPlayer.Player}
+     * @const
+     */
     export class Player {
 
         // fromTime LWF members.
-        private lwf:LWF.LWF = null;
-        private cache:LWF.ResourceCache = null;
+        private _lwf:LWF.LWF = null;
+        private _cache:LWF.ResourceCache = null;
 
         // LwfPlayer module classes members.
-        private playerSettings:PlayerSettings = null;
-        private lwfSettings:LwfSettings = new LwfSettings();
-        private stageContractor:StageContractor = null;
-        private coordinator:Coordinator = null;
-        private rendererSelector:RendererSelector = new RendererSelector();
+        private _playerSettings:PlayerSettings = null;
+        private _lwfSettings:LwfSettings = new LwfSettings();
+        private _stageContractor:StageContractor = null;
+        private _coordinator:Coordinator = null;
+        private _rendererSelector:RendererSelector = new RendererSelector();
 
         // this class only members.
-        private inputQueue:Function[] = [];
-        private fromTime:number = global.performance.now();
-        private pausing:Boolean = false;
-        private goPlayBack:Boolean = false;
-        private destroyed:boolean = false;
-        private goRestart:boolean = false;
+        private _inputQueue:Function[] = [];
+        private _fromTime:number = global.performance.now();
+        private _pausing:Boolean = false;
+        private _goPlayBack:Boolean = false;
+        private _destroyed:boolean = false;
+        private _goRestart:boolean = false;
 
         /**
          * initialize this Player.
@@ -50,42 +53,41 @@ module LwfPlayer {
          */
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
             this.setSettingsAndValidation(playerSettings, lwfSettings);
-            this.rendererSelector.setRenderer(this.playerSettings);
+            this._rendererSelector.renderer = this._playerSettings.renderer;
         }
 
         /**
          * load and play LWF.
          */
-        public play():void {
-            this.restraint();
+        public play = ():void => {
             this.initStage();
             this.initLwf();
 
-            this.lwfSettings.prepareLwfSettings(this);
+            this._lwfSettings.prepareLwfSettings(this);
 
-            this.cache.loadLWF(this.lwfSettings);
-        }
+            this._cache.loadLWF(this._lwfSettings);
+        };
 
         /**
          * stop lwf animation.
          */
-        public pause():void {
-            this.pausing = true;
-        }
+        public pause = ():void => {
+            this._pausing = true;
+        };
 
         /**
          * start lwf animation fromTime pause state.
          */
-        public resume():void {
-            this.pausing = false;
-        }
+        public resume = ():void => {
+            this._pausing = false;
+        };
 
         /**
          * LWF play back from beginning.
          */
-        public playBack():void {
-            this.goPlayBack = true;
-        }
+        public playBack = ():void => {
+            this._goPlayBack = true;
+        };
 
         /**
          * Restart LWF by same player instance.
@@ -93,29 +95,29 @@ module LwfPlayer {
          *
          * @param lwfSettings
          */
-        public reStart(lwfSettings:LwfSettings):void {
-            this.goRestart = true;
+        public reStart = (lwfSettings:LwfSettings):void => {
+            this._goRestart = true;
 
-            this.setSettingsAndValidation(this.playerSettings, lwfSettings);
+            this.setSettingsAndValidation(this._playerSettings, lwfSettings);
 
-            this.lwfSettings.prepareLwfSettings(this);
-            this.cache.loadLWF(this.lwfSettings);
-        }
+            this._lwfSettings.prepareLwfSettings(this);
+            this._cache.loadLWF(this._lwfSettings);
+        };
 
         /**
          * Caution! stop animation, and destroy LWF instance .
          */
-        public destroy():void {
-            this.destroyed = true;
-        }
+        public destroy = ():void => {
+            this._destroyed = true;
+        };
 
         /**
          * return player using LwfPlayer.Coordinator instance.
          *
          * @returns LwfPlayer.Coordinator
          */
-        public getCoordinator():Coordinator {
-            return this.coordinator;
+        public get coordinator():Coordinator {
+            return this._coordinator;
         }
 
         /**
@@ -123,8 +125,8 @@ module LwfPlayer {
          *
          * @returns LwfPlayer.PlayerSettings
          */
-        public getPlayerSettings():PlayerSettings {
-            return this.playerSettings;
+        public get playerSettings():PlayerSettings {
+            return this._playerSettings;
         }
 
         /**
@@ -132,8 +134,8 @@ module LwfPlayer {
          *
          * @returns LwfPlayer.LwfSettings
          */
-        public getLwfSettings():LwfSettings {
-            return this.lwfSettings;
+        public get lwfSettings():LwfSettings {
+            return this._lwfSettings;
         }
 
         /**
@@ -141,8 +143,8 @@ module LwfPlayer {
          *
          * @returns LwfPlayer.RendererSelector
          */
-        public getRendererSelector():RendererSelector {
-            return this.rendererSelector;
+        public get rendererSelector():RendererSelector {
+            return this._rendererSelector;
         }
 
         /**
@@ -150,8 +152,8 @@ module LwfPlayer {
          *
          * @returns LwfPlayer.StageContractor
          */
-        public getStageContractor():StageContractor {
-            return this.stageContractor;
+        public get stageContractor():StageContractor {
+            return this._stageContractor;
         }
 
         /**
@@ -159,12 +161,12 @@ module LwfPlayer {
          * can run the error handler that was passed.
          * It is recommended to pass handler["loadError"] function.
          */
-        private handleLoadError():void {
-            if (this.lwfSettings.handler && this.lwfSettings.handler["loadError"] instanceof Function) {
-                this.lwfSettings.handler["loadError"](this.lwfSettings.error);
+        private handleLoadError = ():void => {
+            if (this._lwfSettings.handler && this._lwfSettings.handler["loadError"] instanceof Function) {
+                this._lwfSettings.handler["loadError"](this._lwfSettings.error);
             }
-            console.error("[LWF] load error: %o", this.lwfSettings.error);
-        }
+            console.error("[LWF] load error: %o", this._lwfSettings.error);
+        };
 
         /**
          * handle exception.
@@ -173,70 +175,69 @@ module LwfPlayer {
          *
          * @param exception
          */
-        private handleException(exception:any):void {
-            if (this.lwfSettings.handler && this.lwfSettings.handler["exception"] instanceof Function) {
-                this.lwfSettings.handler["exception"](exception);
+        private handleException = (exception:any):void => {
+            if (this._lwfSettings.handler && this._lwfSettings.handler["exception"] instanceof Function) {
+                this._lwfSettings.handler["exception"](exception);
             }
             console.error("[LWF] load Exception: %o", exception);
-        }
+        };
 
         /**
          * exec LWF rendering, and dispatch events.
          * It is loop by requestAnimationFrame.
          */
-        private exec():void {
-            var _this = this;
+        private exec = ():void => {
             try {
 
-                if (this.goRestart) {
-                    this.goRestart = false;
+                if (this._goRestart) {
+                    this._goRestart = false;
                     return;
                 }
 
-                if (this.destroyed) {
+                if (this._destroyed) {
                     this.destroyLwf();
                     return;
                 }
 
-                if (this.goPlayBack) {
-                    this.goPlayBack = false;
-                    this.lwf.init();
+                if (this._goPlayBack) {
+                    this._goPlayBack = false;
+                    this._lwf.init();
                 }
 
-                if (Util.isNotEmpty(this.lwf) && !this.pausing) {
-                    for (var i = 0; i < this.inputQueue.length; i++) {
-                        this.inputQueue[i].apply(this);
+                if (Util.isNotEmpty(this._lwf) && !this._pausing) {
+                    for (var i = 0; i < this._inputQueue.length; i++) {
+                        this._inputQueue[i].apply(this);
                     }
-                    this.stageContractor.changeStageSize(this.lwf.width, this.lwf.height);
+                    this._stageContractor.changeStageSize(this._lwf.width, this._lwf.height);
                     this.renderLwf();
                 }
-                this.inputQueue = [];
-                global.requestAnimationFrame(function () {
-                    _this.exec();
+                this._inputQueue = [];
+                global.requestAnimationFrame(() => {
+                    this.exec();
                 });
             } catch (e) {
-                _this.handleException(e);
+                this.handleException(e);
             }
-        }
+        };
 
         /**
          * initialize LWF animation screen stage, and coordinate class.
          */
-        private initStage() {
-            this.stageContractor = new StageContractor(this);
-            this.stageContractor.createScreenStage(this.rendererSelector);
-            this.stageContractor.createEventReceiveStage();
-            this.stageContractor.addEventListeners();
-            this.coordinator = new Coordinator(this.stageContractor);
-        }
+        private initStage = ():void => {
+            this._stageContractor = new StageContractor(this);
+            this._stageContractor.createScreenStage(this._rendererSelector);
+            this._stageContractor.createEventReceiveStage();
+            this._stageContractor.addEventListeners();
+            this._coordinator = new Coordinator(this._stageContractor);
+        };
 
         /**
          * Initialize LWF resources.
          * select LWF renderer, and get LWF resource cache.
          */
-        private initLwf():void {
+        private initLwf = ():void => {
             try {
-                switch (this.rendererSelector.getRenderer()) {
+                switch (this._rendererSelector.renderer) {
                     case RendererName[RendererName.useCanvasRenderer]:
                         global.LWF.useCanvasRenderer();
                         break;
@@ -253,58 +254,58 @@ module LwfPlayer {
                         throw new Error("not supported renderer");
                 }
 
-                this.cache = global.LWF.ResourceCache.get();
+                this._cache = global.LWF.ResourceCache.get();
 
             } catch (e) {
                 this.handleException(e);
             }
-        }
+        };
 
         /**
          * Call LWF rendering processes.
          */
-        private renderLwf():void {
-            var stageWidth = this.stageContractor.getScreenStageWidth();
-            var stageHeight = this.stageContractor.getScreenStageHeight();
+        private renderLwf = ():void => {
+            var stageWidth = this._stageContractor.screenStageWidth;
+            var stageHeight = this._stageContractor.screenStageHeight;
             var toTime = global.performance.now();
-            var tickTack = (toTime - this.fromTime) / 1000;//fast forward fromTime -> toTime
-            this.fromTime = toTime;
+            var tickTack = (toTime - this._fromTime) / 1000;//fast forward fromTime -> toTime
+            this._fromTime = toTime;
 
-            this.lwf.property.clear();
+            this._lwf.property.clear();
 
-            if (this.lwfSettings.fitForWidth) {
-                this.lwf.fitForWidth(stageWidth, stageHeight);
+            if (this._lwfSettings.fitForWidth) {
+                this._lwf.fitForWidth(stageWidth, stageHeight);
             } else {
-                this.lwf.fitForHeight(stageWidth, stageHeight);
+                this._lwf.fitForHeight(stageWidth, stageHeight);
             }
 
-            if (this.getRendererSelector().getRenderer() === RendererName[RendererName.useWebkitCSSRenderer]) {
-                this.lwf.setTextScale(this.getStageContractor().getDevicePixelRatio());
+            if (this.rendererSelector.renderer === RendererName[RendererName.useWebkitCSSRenderer]) {
+                this._lwf.setTextScale(this.stageContractor.devicePixelRatio);
             }
 
-            this.lwf.property.moveTo(0, 0);
-            this.lwf.exec(tickTack);
-            this.lwf.render();
+            this._lwf.property.moveTo(0, 0);
+            this._lwf.exec(tickTack);
+            this._lwf.render();
 
-            if (this.playerSettings.debug) {
-                this.stageContractor.viewDebugInfo();
+            if (this._playerSettings.isDebugMode) {
+                this._stageContractor.viewDebugInfo();
             }
-        }
+        };
 
         /**
          * destroy LWF resource and remove event listener.
          */
-        private destroyLwf():void {
-            if (Util.isNotEmpty(this.lwf)) {
-                this.stageContractor.removeEventListeners();
-                this.lwf.destroy();
-                this.cache = null;
-                this.lwf = null;
+        private destroyLwf = ():void => {
+            if (Util.isNotEmpty(this._lwf)) {
+                this._stageContractor.removeEventListeners();
+                this._lwf.destroy();
+                this._cache = null;
+                this._lwf = null;
 
                 console.log("destroy LWF.");
             }
             console.log("LWF is destroyed.");
-        }
+        };
 
         /**
          * check args property, set the instance member.
@@ -312,7 +313,7 @@ module LwfPlayer {
          * @param playerSettings
          * @param lwfSettings
          */
-        private setSettingsAndValidation(playerSettings:PlayerSettings, lwfSettings:LwfSettings):void {
+        private setSettingsAndValidation = (playerSettings:PlayerSettings, lwfSettings:LwfSettings):void => {
             if (Util.isEmpty(playerSettings) || Util.isEmpty(lwfSettings)) {
                 throw new Error("not enough argument.");
             }
@@ -321,95 +322,79 @@ module LwfPlayer {
                 throw new TypeError("require PlayerSettings instance and LwfSettings instance. ex sample/sample1/index.html");
             }
 
-            this.playerSettings = playerSettings;
-            this.playerSettings.validationPlayerSettings();
+            this._playerSettings = playerSettings;
+            this._playerSettings.validationPlayerSettings();
 
-            this.lwfSettings = lwfSettings;
-            this.lwfSettings.validationLwfSettings();
-        }
+            this._lwfSettings = lwfSettings;
+            this._lwfSettings.validationLwfSettings();
+        };
 
         /**
          * pass the coordinates to LWF from mouse or touch event.
          *
          * @param e
          */
-        private inputPoint(e:Event):void {
-            this.coordinator.setCoordinate(e);
-            this.lwf.inputPoint(this.coordinator.getX(), this.coordinator.getY());
-        }
+        private inputPoint = (e:Event):void => {
+            this._coordinator.setCoordinate(e);
+            this._lwf.inputPoint(this._coordinator.x, this._coordinator.y);
+        };
 
         /**
          * pass the coordinates and input to LWF from mouse or touch event.
          *
          * @param e
          */
-        private inputPress(e:Event):void {
+        private inputPress = (e:Event):void => {
             this.inputPoint(e);
-            this.lwf.inputPress();
-        }
+            this._lwf.inputPress();
+        };
 
         /**
          * push queue the mouse or touch coordinates.
          *
          * @param e
          */
-        public onMove(e:Event):void {
-            this.inputQueue.push(function () {
+        public onMove = (e:Event):void => {
+            this._inputQueue.push(function () {
                 this.inputPoint(e);
             });
-        }
+        };
 
         /**
          * push queue the press by mouse or touch coordinates.
          *
          * @param e
          */
-        public onPress(e:Event):void {
-            this.inputQueue.push(function () {
+        public onPress = (e:Event):void => {
+            this._inputQueue.push(function () {
                 this.inputPress(e);
             });
-        }
+        };
 
         /**
          * push queue the release by mouse or touch coordinates.
          *
          * @param e
          */
-        public onRelease(e:Event):void {
-            this.inputQueue.push(function () {
-                this.lwf.inputRelease();
+        public onRelease = (e:Event):void => {
+            this._inputQueue.push(function () {
+                this._lwf.inputRelease();
             });
-        }
+        };
 
         /**
          * onload call back by LWF.
          *
          * @param lwf
          */
-        public onLoad(lwf:LWF.LWF) {
+        public onLoad = (lwf:LWF.LWF):void => {
             if (Util.isNotEmpty(lwf)) {
-                this.lwf = lwf;
+                this._lwf = lwf;
                 this.exec();
             } else {
                 this.handleLoadError();
             }
-        }
-
-        /**
-         * It is restraint "this" reference to for event listener.
-         */
-        private restraint():void {
-            var __bind = function (fn:Function, me:Player) {
-                return function () {
-                    fn.apply(me, arguments);
-                };
-            };
-
-            this.onRelease = __bind(this.onRelease, this);
-            this.onPress = __bind(this.onPress, this);
-            this.onMove = __bind(this.onMove, this);
-            this.onLoad = __bind(this.onLoad, this);
-        }
+        };
 
         /**
          *  called by external LWF.
@@ -424,20 +409,19 @@ module LwfPlayer {
          *
          * @see https://github.com/gree/lwf-loader
          */
-        private loadLWF(lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void {
+        public loadLWF = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:Object, callback:Function):void => {
             var childSettings:LwfSettings =
                     LwfLoader.prepareChildLwfSettings(
-                        lwf, lwfName, imageMap, privateData, this.lwfSettings);
-            var _this = this;
+                        lwf, lwfName, imageMap, privateData, this._lwfSettings);
             childSettings.onload = function (childLwf:LWF.LWF) {
                 if (Util.isEmpty(childLwf)) {
-                    _this.handleLoadError();
+                    this.handleLoadError();
                     return callback(childSettings["error"], childLwf);
                 }
                 return callback(null, childLwf);
             };
 
-            this.cache.loadLWF(childSettings);
-        }
+            this._cache.loadLWF(childSettings);
+        };
     }
 }

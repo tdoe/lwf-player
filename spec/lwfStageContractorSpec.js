@@ -15,14 +15,14 @@ describe("StageContractor class test", function () {
     var player = new LwfPlayer.Player(playerSettings, lwfSettings);
     player.initStage();
 
-    var stageContractor = player.getStageContractor();
+    var stageContractor = player.stageContractor;
 
     it("test getDevicePixelRatio", function () {
-        expect(stageContractor.getDevicePixelRatio()).toMatch(/\d/);
+        expect(stageContractor.devicePixelRatio).toMatch(/\d/);
     });
 
     it("test getStageScale", function () {
         stageContractor.changeStageSize(320, 480);
-        expect(stageContractor.getStageScale()).toEqual(1);
+        expect(stageContractor.stageScale).toEqual(1);
     });
 });

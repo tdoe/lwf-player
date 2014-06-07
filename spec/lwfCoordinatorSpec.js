@@ -23,10 +23,10 @@ describe("Coordinator class test", function () {
             clientX: 100,
             clientY: 100
         };
-        var coordinator = player.getCoordinator();
+        var coordinator = player.coordinator;
         coordinator.setCoordinate(event);
-        expect(coordinator.getX()).toEqual(100);
-        expect(coordinator.getY()).toEqual(100);
+        expect(coordinator.x).toEqual(100);
+        expect(coordinator.y).toEqual(100);
     });
 
 });
