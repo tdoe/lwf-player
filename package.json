@@ -19,6 +19,7 @@
         "gulp-uglify": "0.3.0",
         "gulp-clean": "0.3.0",
         "gulp-rename": "1.2.0",
+        "gulp-util": "2.2.14",
         "grunt": "0.4.4",
         "grunt-contrib-jasmine": "0.6.4"
     }

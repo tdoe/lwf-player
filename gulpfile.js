@@ -7,6 +7,7 @@ var typescript = require("gulp-tsc");
 var uglify = require("gulp-uglify");
 var clean = require("gulp-clean");
 var rename = require("gulp-rename");
+var gutil = require("gulp-util");
 
 var tsLintConf = {
     "rules": {
@@ -85,7 +86,10 @@ gulp.task("devCompile", function () {
             out: DEST_JS_NAME,
             emitError: false
         }))
-        .pipe(gulp.dest("sample/js"));
+        .pipe(gulp.dest("sample/js"))
+        .on("end", function () {
+            gutil.log(("compiled."));
+        });
 });
 
 gulp.task("tsLint", function () {
