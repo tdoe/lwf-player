@@ -267,7 +267,7 @@ module LwfPlayer {
             var stageWidth = this._stageContractor.screenStageWidth;
             var stageHeight = this._stageContractor.screenStageHeight;
             var toTime = global.performance.now();
-            var tickTack = (toTime - this._fromTime) / 1000;//fast forward fromTime -> toTime
+            var tickTack = (toTime - this._fromTime) / 1000;
             this._fromTime = toTime;
 
             this._lwf.property.clear();

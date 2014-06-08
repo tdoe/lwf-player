@@ -48,7 +48,8 @@ module LwfPlayer {
          *
          * @returns childSettings For attach LWF
          */
-        public static prepareChildLwfSettings = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:any, lwfSetting:LwfSettings):LwfSettings => {
+        public static prepareChildLwfSettings
+            = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:any, lwfSetting:LwfSettings):LwfSettings => {
             var childSettings = new LwfSettings();
 
             for (var i in lwfSetting) {
