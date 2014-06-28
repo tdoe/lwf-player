@@ -45,7 +45,7 @@ but [lwf_player_lwf_settings.ts](https://github.com/tdoe/lwf-player/blob/master/
 
 ```
 // for LWF settings.
- var lwfSettings = new LwfPlayer.LwfSettings();
+var lwfSettings = new LwfPlayer.LwfSettings();
 lwfSettings.lwf = "hoge.lwf"; // require LWF file path.
 lwfSettings.prefix = "lwf/js/images/prefix";
 lwfSettings.imagePrefix = "images/prefix";
