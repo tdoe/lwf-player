@@ -15,7 +15,6 @@ module LwfPlayer {
 
     /**
      * @type {LwfPlayer.StageContractor}
-     * @const
      */
     export class StageContractor {
 
@@ -37,7 +36,7 @@ module LwfPlayer {
         /**
          * this class is need Player instance.
          *
-         * @param player
+         * @param player {LwfPlayer.Player}
          */
         constructor(player:Player) {
             this._player = player;
@@ -112,8 +111,8 @@ module LwfPlayer {
          * calculation to set stage size.
          * stage size is passed to LWF
          *
-         * @param width  LWF width
-         * @param height LWF height
+         * @param width  {number} LWF width
+         * @param height {number} LWF height
          */
         public changeStageSize = (width:number, height:number):void => {
             var screenWidth = Util.getStageWidth();
@@ -145,8 +144,8 @@ module LwfPlayer {
          * calc stage size by LWF size.
          * For fit to LWF width.
          *
-         * @param lwfWidth
-         * @param lwfHeight
+         * @param {number} lwfWidth
+         * @param {number} lwfHeight
          */
         private fitForWidth = (lwfWidth:number, lwfHeight:number) => {
             this._stageStyleWidth = Math.round(lwfWidth);
@@ -159,8 +158,8 @@ module LwfPlayer {
          * calc stage size by LWF size.
          * For fit to LWF height.
          *
-         * @param lwfWidth
-         * @param lwfHeight
+         * @param {number} lwfWidth
+         * @param {number} lwfHeight
          */
         private fitForHeight = (lwfWidth:number, lwfHeight:number) => {
             this._stageStyleWidth = Math.round(lwfHeight * lwfWidth / lwfHeight);
@@ -173,8 +172,8 @@ module LwfPlayer {
          * calc stage size by screen-size.
          * For full screen LWF display.
          *
-         * @param lwfWidth
-         * @param lwfHeight
+         * @param {number} lwfWidth
+         * @param {number} lwfHeight
          */
         private fitToScreen = (lwfWidth:number, lwfHeight:number) => {
             var screenWidth = Util.getStageWidth();
@@ -238,7 +237,7 @@ module LwfPlayer {
 
         /**
          * create LWF animation rendering element.
-         * @param rendererSelector
+         * @param rendererSelector {LwfPlayer.RendererSelector}
          */
         public createScreenStage = (rendererSelector:RendererSelector):void => {
             if (rendererSelector.renderer === RendererName[RendererName.useCanvasRenderer] ||
@@ -308,11 +307,5 @@ module LwfPlayer {
                 "sw:" + this._stageStyleWidth + " sh:" + this._stageStyleHeight +
                 " w:" + this._stageWidth + " h:" + this._stageHeight + " s:" + this._stageScale + " dpr:" + this.devicePixelRatio;
         };
-    }
-
-    export class Position {
-        public top:string;
-        public left:string;
-        public position:string;
     }
 }

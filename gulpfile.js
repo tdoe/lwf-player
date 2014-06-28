@@ -82,7 +82,7 @@ gulp.task("devCompile", function () {
             target: "ES5",
             module: "commonjs",
             noImplicitAny: true,
-            removeComments: false,
+            removeComments: true,
             out: DEST_JS_NAME,
             emitError: false
         }))
@@ -111,7 +111,7 @@ gulp.task("build", ["clean", "tsLint"], function (done) {
             target: "ES5",
             module: "commonjs",
             noImplicitAny: true,
-            removeComments: false,
+            removeComments: true,
             declaration:true,
             sourcemap: true,
             out: DEST_JS_NAME

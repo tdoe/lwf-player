@@ -19,6 +19,11 @@ module LwfPlayer {
     "use strict";
 
     export class LwfSettings {
+        // for tsc "Index signature of object type implicitly has an 'any' type"
+        // or (<any>obj)[i] = (<any>obj)[i];
+    [index: string]: any;
+    [index: number]: any;
+
         public active:boolean;
 
         public buttonEventMap:Object;
@@ -99,7 +104,7 @@ module LwfPlayer {
         /**
          * require members init.
          *
-         * @param player
+         * @param player {LwfPlayer.Player}
          */
         public prepareLwfSettings = (player:Player):void => {
             if (Util.isEmpty(this.privateData)) {
@@ -127,9 +132,9 @@ module LwfPlayer {
          * If input is a function, return directly. Otherwise, it tries to set path from the previous set imageMap array.
          * ImageMap will be passed into LWF directly.
          *
-         * @param imageMap image map data
+         * @param imageMap {object} image map data
          *
-         * @return function to replace path by maps
+         * @return {function} to replace path by maps
          */
         public static getImageMapper = (imageMap:any):Function => {
             if (imageMap instanceof Function) {
@@ -147,9 +152,9 @@ module LwfPlayer {
         /**
          * return LWF file path.
          *
-         * @param lwfName LWF name.
+         * @param lwfName {string} LWF name.
          *
-         * @returns {string|Function} LWF file path.
+         * @returns {string|function} LWF file path.
          */
         public getLwfPath = (lwfName:string):any => {
             if (Util.isNotEmpty(this.lwfMap)) {
@@ -167,10 +172,5 @@ module LwfPlayer {
 
             return LwfLoader.getLwfPath(lwfName);
         };
-
-        // for tsc "Index signature of object type implicitly has an 'any' type"
-        // or (<any>obj)[i] = (<any>obj)[i];
-    [index: string]: any;
-    [index: number]: any;
     }
 }

@@ -21,34 +21,33 @@ module LwfPlayer {
 
     /**
      * @type {LwfPlayer.Player}
-     * @const
      */
     export class Player {
 
         // fromTime LWF members.
-        private _lwf:LWF.LWF = null;
-        private _cache:LWF.ResourceCache = null;
+        private _lwf:LWF.LWF;
+        private _cache:LWF.ResourceCache;
 
         // LwfPlayer module classes members.
-        private _playerSettings:PlayerSettings = null;
-        private _lwfSettings:LwfSettings = new LwfSettings();
-        private _stageContractor:StageContractor = null;
-        private _coordinator:Coordinator = null;
+        private _coordinator:Coordinator;
+        private _lwfSettings:LwfSettings;
+        private _playerSettings:PlayerSettings;
+        private _stageContractor:StageContractor;
         private _rendererSelector:RendererSelector = new RendererSelector();
 
         // this class only members.
-        private _inputQueue:Function[] = [];
-        private _fromTime:number = global.performance.now();
-        private _pausing:Boolean = false;
-        private _goPlayBack:Boolean = false;
+        private _pausing:boolean = false;
         private _destroyed:boolean = false;
         private _goRestart:boolean = false;
+        private _goPlayBack:boolean = false;
+        private _inputQueue:Function[] = [];
+        private _fromTime:number = global.performance.now();
 
         /**
          * initialize this Player.
          *
-         * @param playerSettings Require targetStage:HTMLElement.
-         * @param lwfSettings    Require lwf:load LWF path.
+         * @param playerSettings {LwfPlayer.PlayerSettings} Require targetStage:HTMLElement.
+         * @param lwfSettings    {LwfPlayer.LwfSettings}    Require lwf:load LWF path.
          */
         constructor(playerSettings:PlayerSettings, lwfSettings:LwfSettings) {
             this.setSettingsAndValidation(playerSettings, lwfSettings);
@@ -92,7 +91,7 @@ module LwfPlayer {
          * Restart LWF by same player instance.
          * using same stage and renderer.
          *
-         * @param lwfSettings
+         * @param lwfSettings {LwfPlayer.LwfSettings}
          */
         public reStart = (lwfSettings:LwfSettings):void => {
             this._goRestart = true;
@@ -104,7 +103,7 @@ module LwfPlayer {
         };
 
         /**
-         * Caution! stop animation, and destroy LWF instance .
+         * Caution! stop animation, and destroy LWF resource instance.
          */
         public destroy = ():void => {
             this._destroyed = true;
@@ -113,7 +112,7 @@ module LwfPlayer {
         /**
          * return player using LwfPlayer.Coordinator instance.
          *
-         * @returns LwfPlayer.Coordinator
+         * @returns {LwfPlayer.Coordinator}
          */
         public get coordinator():Coordinator {
             return this._coordinator;
@@ -122,7 +121,7 @@ module LwfPlayer {
         /**
          * return player using LwfPlayer.PlayerSettings instance.
          *
-         * @returns LwfPlayer.PlayerSettings
+         * @returns {LwfPlayer.PlayerSettings}
          */
         public get playerSettings():PlayerSettings {
             return this._playerSettings;
@@ -131,7 +130,7 @@ module LwfPlayer {
         /**
          * return player using LwfPlayer.LwfSettings instance.
          *
-         * @returns LwfPlayer.LwfSettings
+         * @returns {LwfPlayer.LwfSettings}
          */
         public get lwfSettings():LwfSettings {
             return this._lwfSettings;
@@ -140,7 +139,7 @@ module LwfPlayer {
         /**
          * return player using LwfPlayer.RendererSelector instance.
          *
-         * @returns LwfPlayer.RendererSelector
+         * @returns {LwfPlayer.RendererSelector}
          */
         public get rendererSelector():RendererSelector {
             return this._rendererSelector;
@@ -149,7 +148,7 @@ module LwfPlayer {
         /**
          * return player using LwfPlayer.StageContractor instance.
          *
-         * @returns LwfPlayer.StageContractor
+         * @returns {LwfPlayer.StageContractor}
          */
         public get stageContractor():StageContractor {
             return this._stageContractor;
@@ -163,8 +162,9 @@ module LwfPlayer {
         private handleLoadError = ():void => {
             if (this._lwfSettings.handler && this._lwfSettings.handler["loadError"] instanceof Function) {
                 this._lwfSettings.handler["loadError"](this._lwfSettings.error);
+            } else {
+                console.error("[LWF] load error: %o", this._lwfSettings.error);
             }
-            console.error("[LWF] load error: %o", this._lwfSettings.error);
         };
 
         /**
@@ -177,8 +177,9 @@ module LwfPlayer {
         private handleException = (exception:any):void => {
             if (this._lwfSettings.handler && this._lwfSettings.handler["exception"] instanceof Function) {
                 this._lwfSettings.handler["exception"](exception);
+            } else {
+                console.error("[LWF] load Exception: %o", exception);
             }
-            console.error("[LWF] load Exception: %o", exception);
         };
 
         /**
@@ -210,6 +211,7 @@ module LwfPlayer {
                     this._stageContractor.changeStageSize(this._lwf.width, this._lwf.height);
                     this.renderLwf();
                 }
+
                 this._inputQueue = [];
                 global.requestAnimationFrame(() => {
                     this.exec();
@@ -309,8 +311,8 @@ module LwfPlayer {
         /**
          * check args property, set the instance member.
          *
-         * @param playerSettings
-         * @param lwfSettings
+         * @param playerSettings {LwfPlayer.PlayerSettings}
+         * @param lwfSettings    {LwfPlayer.LwfSettings}
          */
         private setSettingsAndValidation = (playerSettings:PlayerSettings, lwfSettings:LwfSettings):void => {
             if (Util.isEmpty(playerSettings) || Util.isEmpty(lwfSettings)) {
@@ -331,7 +333,7 @@ module LwfPlayer {
         /**
          * pass the coordinates to LWF from mouse or touch event.
          *
-         * @param e
+         * @param e {Event}
          */
         private inputPoint = (e:Event):void => {
             this._coordinator.setCoordinate(e);
@@ -341,7 +343,7 @@ module LwfPlayer {
         /**
          * pass the coordinates and input to LWF from mouse or touch event.
          *
-         * @param e
+         * @param e {Event}
          */
         private inputPress = (e:Event):void => {
             this.inputPoint(e);
@@ -351,40 +353,46 @@ module LwfPlayer {
         /**
          * push queue the mouse or touch coordinates.
          *
-         * @param e
+         * @param e {Event}
          */
         public onMove = (e:Event):void => {
-            this._inputQueue.push(function () {
-                this.inputPoint(e);
-            });
+            this._inputQueue.push(
+                () => {
+                    this.inputPoint(e);
+                }
+            );
         };
 
         /**
          * push queue the press by mouse or touch coordinates.
          *
-         * @param e
+         * @param e {Event}
          */
         public onPress = (e:Event):void => {
-            this._inputQueue.push(function () {
-                this.inputPress(e);
-            });
+            this._inputQueue.push(
+                () => {
+                    this.inputPress(e);
+                }
+            );
         };
 
         /**
          * push queue the release by mouse or touch coordinates.
          *
-         * @param e
+         * @param e {Event}
          */
         public onRelease = (e:Event):void => {
-            this._inputQueue.push(function () {
-                this._lwf.inputRelease();
-            });
+            this._inputQueue.push(
+                () => {
+                    this._lwf.inputRelease();
+                }
+            );
         };
 
         /**
          * onload call back by LWF.
          *
-         * @param lwf
+         * @param lwf {LWF.LWF}
          */
         public onLoad = (lwf:LWF.LWF):void => {
             if (Util.isNotEmpty(lwf)) {
@@ -400,11 +408,11 @@ module LwfPlayer {
          *  Load external LWF resource to attach on current running LWF.
          *  For backward compatibility lwf-loader.
          *
-         * @param lwf         parent LWF instance.
-         * @param lwfName     child-LWF ID.
-         * @param imageMap    for child-LWF imageMap object or function.
-         * @param privateData for child-LWF object.
-         * @param callback    callback to return attach LWF instance.
+         * @param lwf         {LWF.LWF}    parent LWF instance.
+         * @param lwfName     {string}     child-LWF ID.
+         * @param imageMap    {object}     child-LWF imageMap object or function.
+         * @param privateData {object}     for child-LWF object.
+         * @param callback    {Function}   callback to return attach LWF instance.
          *
          * @see https://github.com/gree/lwf-loader
          */
@@ -412,7 +420,7 @@ module LwfPlayer {
             var childSettings:LwfSettings =
                     LwfLoader.prepareChildLwfSettings(
                         lwf, lwfName, imageMap, privateData, this._lwfSettings);
-            childSettings.onload = function (childLwf:LWF.LWF) {
+            childSettings.onload = (childLwf:LWF.LWF) => {
                 if (Util.isEmpty(childLwf)) {
                     this.handleLoadError();
                     return callback(childSettings["error"], childLwf);

@@ -13,7 +13,6 @@ module LwfPlayer {
 
     /**
      * @type {LwfPlayer.RendererSelector}
-     * @const
      */
     export class RendererSelector {
 
@@ -37,7 +36,7 @@ module LwfPlayer {
          * can use it only three types.
          * auto-select the optimal renderer set after.
          *
-         * @param renderer
+         * @param renderer {string}
          */
         public set renderer(renderer:string) {
             if (Util.isEmpty(renderer)) {

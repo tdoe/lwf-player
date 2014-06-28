@@ -19,7 +19,7 @@ module LwfPlayer {
          *
          * get LWF path from ID (OBSOLETED. should be used for backward compatibility only)
          *
-         * @param {string} lwfName LWF name.
+         * @param lwfName {string} LWF name.
          *
          * @returns {string} LWF file path.
          */
@@ -33,6 +33,10 @@ module LwfPlayer {
             return lwfName + "/_/" + _lwfName + ".lwf";
         };
 
+        /**
+         * @param player      {LwfPlayer.Player}
+         * @param lwfSettings {LwfPlayer.LwfSettings}
+         */
         public static setLoader = (player:Player, lwfSettings:LwfSettings) => {
             lwfSettings.privateData.lwfLoader = player;
         };
@@ -40,13 +44,13 @@ module LwfPlayer {
         /**
          * For backward compatibility lwf-loader.
          *
-         * @param lwf         parent LWF instance.
-         * @param lwfName     for child LWF name.
-         * @param imageMap    for chile imageMap
-         * @param privateData for child privateData object.
-         * @param lwfSetting  parent LWF setting.
+         * @param lwf         {LWF.LWF}                parent LWF instance.
+         * @param lwfName     {string}                 for child LWF name.
+         * @param imageMap    {object}                 for chile imageMap
+         * @param privateData {object}                 for child privateData object.
+         * @param lwfSetting  {LwfPlayer.LwfSettings}  parent LWF setting.
          *
-         * @returns childSettings For attach LWF
+         * @returns childSettings {LwfPlayer.LwfSettings} For attach LWF
          */
         public static prepareChildLwfSettings
             = (lwf:LWF.LWF, lwfName:string, imageMap:any, privateData:any, lwfSetting:LwfSettings):LwfSettings => {

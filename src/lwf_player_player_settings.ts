@@ -17,8 +17,7 @@
 module LwfPlayer {
 
     /**
-     * @type {Object}
-     * @const
+     * @type {LwfPlayer.PlayerSettings}
      */
     export class PlayerSettings {
 
@@ -36,15 +35,13 @@ module LwfPlayer {
         };
 
         /**
-         * @const
-         * @param renderer
+         * @param renderer {string}
          */
         public set renderer(renderer:string) {
             this._renderer = renderer;
         }
 
         /**
-         * @const
          * @returns {string}
          */
         public get renderer():string {
@@ -52,7 +49,6 @@ module LwfPlayer {
         }
 
         /**
-         * @const
          * @param isDebugMode
          */
         public set isDebugMode(isDebugMode:boolean) {
@@ -60,7 +56,6 @@ module LwfPlayer {
         }
 
         /**
-         * @const
          * @returns {boolean}
          */
         public get isDebugMode():boolean {
@@ -68,15 +63,13 @@ module LwfPlayer {
         }
 
         /**
-         * @const
-         * @param targetStage
+         * @param targetStage {HTMLElement}
          */
         public set targetStage(targetStage:HTMLElement) {
             this._targetStage = targetStage;
         }
 
         /**
-         * @const
          * @returns {HTMLElement}
          */
         public get targetStage():HTMLElement {

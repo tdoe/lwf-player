@@ -38,7 +38,7 @@ module LwfPlayer {
         /**
          * this class is need StageContractor instance.
          *
-         * @param stageContractor
+         * @param stageContractor {LwfPlayer.StageContractor}
          */
         constructor(stageContractor:StageContractor) {
             this._stageContractor = stageContractor;
@@ -47,7 +47,7 @@ module LwfPlayer {
         /**
          * force set isPreventDefaultEnabled.
          *
-         * @param isPreventDefaultEnabled
+         * @param isPreventDefaultEnabled {boolean}
          */
         public set preventDefaultEnabled(isPreventDefaultEnabled:boolean) {
             this._isPreventDefaultEnabled = isPreventDefaultEnabled;
@@ -57,7 +57,7 @@ module LwfPlayer {
          * set coordinate by mouse or touch event input.
          * wrapping of mouse, touch and LWF stage size.
          *
-         * @param event
+         * @param event {MouseEvent|TouchEvent}
          */
         public setCoordinate = (event:any):void => {
             if (this._isPreventDefaultEnabled) {
@@ -90,7 +90,7 @@ module LwfPlayer {
         /**
          * From mouse or touch event get X coordinate.
          *
-         * @returns _x
+         * @returns _x {number}
          */
         public get x():number {
             return this._x;
@@ -99,7 +99,7 @@ module LwfPlayer {
         /**
          * From mouse or touch event get Y coordinate.
          *
-         * @returns _y
+         * @returns _y {number}
          */
         public get y():number {
             return this._y;

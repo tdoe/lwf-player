@@ -53,15 +53,20 @@ module LwfPlayer {
          */
         public static isPreventDefaultEnabled:boolean = Util.isiOS || /Android *(4|3)\..*/.test(Util.ua);
 
+        /**
+         * force to disable use3D on Android devices
+         * and handle buggy css behaviour in certain devices
+         *
+         * @param lwfSettings {LwfPlayer.LwfSettings}
+         * @param renderer    {string}
+         */
         public static forceSettingForAndroid = (lwfSettings:LwfSettings, renderer:string):void => {
-            /** force to disable use3D on Android devices */
             lwfSettings.use3D = false;
 
             if (lwfSettings.worker) {
                 lwfSettings.worker = Util.useWebWorker;
             }
 
-            /** handle buggy css behaviour in certain devices */
             if (/ (SC-0|Galaxy Nexus|SH-0)/.test(Util.ua) &&
                 renderer === RendererName[RendererName.useWebkitCSSRenderer]) {
                 lwfSettings.quirkyClearRect = true;
@@ -71,7 +76,7 @@ module LwfPlayer {
         /**
          * tune opacity for SH devices using Android 2.3.5-2.3.7 with WebkitCSS Renderer
          *
-         * @param renderer
+         * @param renderer {string}
          * @returns {*}
          */
         public static getOpacity = (renderer:string):string => {
@@ -109,7 +114,7 @@ module LwfPlayer {
         /**
          * if null or undefined or empty object is return true.
          *
-         * @param arg
+         * @param arg {object}
          *
          * @returns {boolean}
          */
@@ -138,7 +143,7 @@ module LwfPlayer {
         /**
          * @see Util.isEmpty
          *
-         * @param arg
+         * @param arg {object}
          *
          * @returns {boolean}
          */
